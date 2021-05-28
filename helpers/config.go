@@ -1,4 +1,4 @@
-package cf_performance_tests
+package helpers
 
 import (
 	"fmt"
@@ -24,6 +24,7 @@ type Config struct {
 	NamePrefix        string `mapstructure:"name_prefix"`
 
 	LargePageSize int `mapstructure:"large_page_size"`
+	Samples       int
 
 	Users Users
 
@@ -39,6 +40,7 @@ func NewConfig() Config {
 		BasicTimeout:      30 * time.Second,
 		LongTimeout:       120 * time.Second,
 		LargePageSize:     500,
+		Samples:           10,
 	}
 }
 
