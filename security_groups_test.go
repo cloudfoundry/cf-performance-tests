@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
@@ -37,6 +38,22 @@ var _ = Describe("Security Groups", func() {
 				})
 			})
 		}, testConfig.Samples)
+
+		Describe("as admin with space filter", func() {
+			var spaceGUIDs []string
+			BeforeEach(func() {
+				spaces := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/spaces")
+				spaceGUIDs = helpers.SelectRandom(spaces, 20)
+			})
+
+			Measure("as admin with space filter", func(b Benchmarker) {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					b.Time("request time", func() {
+						Expect(cf.Cf("curl", fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ","))).Wait(testConfig.BasicTimeout)).To(Exit(0))
+					})
+				})
+			}, testConfig.Samples)
+		})
 	})
 
 	Describe("individually", func() {
