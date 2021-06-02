@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
@@ -32,6 +34,8 @@ func TestCfPerformanceTests(t *testing.T) {
 		t.Fatalf("error parsing config: %s", err.Error())
 	}
 
+	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("cf-performance-test-results-%d.json", time.Now().Unix()))
+
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CfPerformanceTests Suite")
+	RunSpecsWithDefaultAndCustomReporters(t, "CfPerformanceTests Suite", []Reporter{jsonReporter})
 }

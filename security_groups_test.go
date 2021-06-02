@@ -13,7 +13,7 @@ import (
 	. "github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Security Groups", func() {
+var _ = Describe("security groups", func() {
 	Describe("GET /v3/security_groups", func() {
 		Measure("as admin", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -39,21 +39,15 @@ var _ = Describe("Security Groups", func() {
 			})
 		}, testConfig.Samples)
 
-		Describe("as admin with space filter", func() {
-			var spaceGUIDs []string
-			BeforeEach(func() {
-				spaces := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/spaces")
-				spaceGUIDs = helpers.SelectRandom(spaces, 20)
-			})
-
-			Measure("as admin with space filter", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(cf.Cf("curl", "--fail", fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ","))).Wait(testConfig.BasicTimeout)).To(Exit(0))
-					})
+		Measure("as admin with space filter", func(b Benchmarker) {
+			spaces := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/spaces")
+			spaceGUIDs := helpers.SelectRandom(spaces, 20)
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				b.Time("request time", func() {
+					Expect(cf.Cf("curl", "--fail", fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ","))).Wait(testConfig.BasicTimeout)).To(Exit(0))
 				})
-			}, testConfig.Samples)
-		})
+			})
+		}, testConfig.Samples)
 	})
 
 	Describe("individually", func() {
