@@ -18,7 +18,7 @@ var _ = Describe("Security Groups", func() {
 		Measure("as admin", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				b.Time("request time", func() {
-					Expect(cf.Cf("curl", "/v3/security_groups").Wait(testConfig.BasicTimeout)).To(Exit(0))
+					Expect(cf.Cf("curl", "--fail", "/v3/security_groups").Wait(testConfig.BasicTimeout)).To(Exit(0))
 				})
 			})
 		}, testConfig.Samples)
@@ -26,7 +26,7 @@ var _ = Describe("Security Groups", func() {
 		Measure("as regular user", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 				b.Time("request time", func() {
-					Expect(cf.Cf("curl", "/v3/security_groups").Wait(testConfig.BasicTimeout)).To(Exit(0))
+					Expect(cf.Cf("curl", "--fail", "/v3/security_groups").Wait(testConfig.BasicTimeout)).To(Exit(0))
 				})
 			})
 		}, testConfig.Samples)
@@ -34,7 +34,7 @@ var _ = Describe("Security Groups", func() {
 		Measure("as admin with large page size", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 				b.Time("request time", func() {
-					Expect(cf.Cf("curl", fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize)).Wait(testConfig.LongTimeout)).To(Exit(0))
+					Expect(cf.Cf("curl", "--fail", fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize)).Wait(testConfig.LongTimeout)).To(Exit(0))
 				})
 			})
 		}, testConfig.Samples)
@@ -49,7 +49,7 @@ var _ = Describe("Security Groups", func() {
 			Measure("as admin with space filter", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					b.Time("request time", func() {
-						Expect(cf.Cf("curl", fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ","))).Wait(testConfig.BasicTimeout)).To(Exit(0))
+						Expect(cf.Cf("curl", "--fail", fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ","))).Wait(testConfig.BasicTimeout)).To(Exit(0))
 					})
 				})
 			}, testConfig.Samples)
@@ -66,7 +66,7 @@ var _ = Describe("Security Groups", func() {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				sg := securityGroups[rand.Intn(len(securityGroups))]
 				b.Time("request time", func() {
-					Expect(cf.Cf("curl", fmt.Sprintf("/v3/security_groups/%s", sg)).Wait(testConfig.BasicTimeout)).To(Exit(0))
+					Expect(cf.Cf("curl", "--fail", fmt.Sprintf("/v3/security_groups/%s", sg)).Wait(testConfig.BasicTimeout)).To(Exit(0))
 				})
 			})
 		}, testConfig.Samples)
@@ -77,7 +77,7 @@ var _ = Describe("Security Groups", func() {
 				sg := securityGroups[rand.Intn(len(securityGroups))]
 				b.Time("request time", func() {
 					Expect(cf.Cf(
-						"curl", "-X", "PATCH",
+						"curl", "--fail", "-X", "PATCH",
 						"-d", fmt.Sprintf(updateFormat, sg),
 						fmt.Sprintf("/v3/security_groups/%s", sg)).Wait(testConfig.BasicTimeout)).To(Exit(0))
 				})
@@ -89,7 +89,7 @@ var _ = Describe("Security Groups", func() {
 				sg := securityGroups[rand.Intn(len(securityGroups))]
 				b.Time("request time", func() {
 					Expect(cf.Cf(
-						"curl", "-X", "DELETE",
+						"curl", "--fail", "-X", "DELETE",
 						fmt.Sprintf("/v3/security_groups/%s", sg)).Wait(testConfig.BasicTimeout)).To(Exit(0))
 				})
 			})
