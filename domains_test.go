@@ -68,5 +68,17 @@ var _ = Describe("domains", func() {
 				})
 			})
 		}, testConfig.Samples)
+
+		Measure("PATCH /v3/domains/:guid", func(b Benchmarker) {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				domain := domains[rand.Intn(len(domains))]
+				b.Time("request time", func() {
+					Expect(cf.Cf(
+						"curl", "--fail", "-X", "PATCH",
+						"-d", `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`,
+						fmt.Sprintf("/v3/domains/%s", domain)).Wait(testConfig.BasicTimeout)).To(Exit(0))
+				})
+			})
+		}, testConfig.Samples)
 	})
 })
