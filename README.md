@@ -19,7 +19,25 @@ Tests in this repository are written using [Ginkgo](https://onsi.github.io/ginkg
 
 The test suite uses [Viper](https://github.com/spf13/viper) for configuration of parameters such as API endpoint, credentials etc. Viper will look for a configuration file in both the `$HOME` directory and the working directory that tests are invoked from. See the [Config struct](helpers/config.go) for available configuration parameters.
 
-To run the tests, create a configuration file that Viper can find then run:
+To run the tests, create a configuration file that Viper can find, e.g. `config.yml` in the project's root folder:
+```yaml
+api: "<test CF API>"
+use_http: false
+skip_ssl_validation: false
+name_prefix: "CPT"
+samples: 10
+basictimeout: 30
+longtimeout: 120
+users:
+  admin:
+    username: "<admin username>"
+    password: "<admin password>"
+  existing:
+    username: "<non-admin username>"
+    password: "<non-admin password>"
+```
+
+Then run:
 ```bash
 ginkgo
 ```
