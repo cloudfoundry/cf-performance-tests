@@ -1,5 +1,4 @@
 .vscode/*
-cf-performance-test-results-*.json
 .idea/*
 cf-performance-tests.iml
 config.yml

@@ -34,7 +34,7 @@ func TestCfPerformanceTests(t *testing.T) {
 		t.Fatalf("error parsing config: %s", err.Error())
 	}
 
-	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("cf-performance-test-results-%d.json", time.Now().Unix()))
+	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("test-results/cf-performance-test-results-%d.json", time.Now().Unix()))
 
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "CfPerformanceTests Suite", []Reporter{jsonReporter})
