@@ -69,7 +69,7 @@ var _ = Describe("domains", func() {
 			})
 		}, testConfig.Samples)
 
-		Measure("PATCH /v3/domains/:guid", func(b Benchmarker) {
+		PMeasure("PATCH /v3/domains/:guid", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				domain := domains[rand.Intn(len(domains))]
 				b.Time("request time", func() {

@@ -65,7 +65,7 @@ var _ = Describe("security groups", func() {
 			})
 		}, testConfig.Samples)
 
-		Measure("PATCH /v3/security_groups/:guid", func(b Benchmarker) {
+		PMeasure("PATCH /v3/security_groups/:guid", func(b Benchmarker) {
 			updateFormat := `{"name":"updated-security-group-%s","rules":[{"protocol":"tcp","destination":"10.10.10.0/24","ports":"443,80,8080"},{"protocol":"icmp","destination":"10.10.10.0/24","type":8,"code":0,"description":"ping"}]}`
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				sg := securityGroups[rand.Intn(len(securityGroups))]
@@ -78,7 +78,7 @@ var _ = Describe("security groups", func() {
 			})
 		}, testConfig.Samples)
 
-		Measure("DELETE /v3/security_groups/:guid", func(b Benchmarker) {
+		PMeasure("DELETE /v3/security_groups/:guid", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				sg := securityGroups[rand.Intn(len(securityGroups))]
 				b.Time("request time", func() {
