@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
@@ -12,6 +13,7 @@ import (
 type APIResponse struct {
 	Resources []struct {
 		GUID string `json:"guid"`
+		Name string `json:"name"`
 	} `json:"resources"`
 }
 
@@ -25,7 +27,10 @@ func GetGUIDs(user workflowhelpers.UserContext, testConfig Config, endpoint stri
 	})
 	json.Unmarshal(session.Out.Contents(), &resp)
 	for _, item := range resp.Resources {
-		guids = append(guids, item.GUID)
+		// do not select non-test resources (e.g. the default CF orgs or security groups)
+		if strings.HasPrefix(item.Name, testConfig.GetNamePrefix()) {
+			guids = append(guids, item.GUID)
+		}
 	}
 	return guids
 }

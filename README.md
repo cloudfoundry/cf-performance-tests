@@ -24,7 +24,7 @@ To run the tests, create a configuration file that Viper can find, e.g. `config.
 api: "<test CF API>"
 use_http: false
 skip_ssl_validation: false
-name_prefix: "CPT"
+name_prefix: "perf"
 samples: 10
 basictimeout: 30
 longtimeout: 120
@@ -36,6 +36,7 @@ users:
     username: "<non-admin username>"
     password: "<non-admin password>"
 ```
+The `name_prefix` string must match the prefix of the test resources names. Note that some performance tests delete lists of resources. Using a `name_prefix` ensures that only test resources are deleted.
 
 Then run:
 ```bash
