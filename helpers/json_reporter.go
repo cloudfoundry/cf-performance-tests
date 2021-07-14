@@ -20,14 +20,19 @@ type Reporter interface {
 }
 
 type JsonReporter struct {
-	measurements map[string]map[string]*types.SpecMeasurement
-	outputFile   string
+	// only capitalised elements are exported and marshalled to json
+	Measurements        map[string]map[string]*types.SpecMeasurement `json:"measurements"`
+	outputFile          string
+	CfDeploymentVersion string `json:"cfDeploymentVersion"`
+	Timestamp           int64  `json:"timestamp"`
 }
 
-func NewJsonReporter(outputFile string) *JsonReporter {
+func NewJsonReporter(outputFile string, cfDeploymentVersion string, timestamp int64) *JsonReporter {
 	return &JsonReporter{
-		outputFile:   outputFile,
-		measurements: map[string]map[string]*types.SpecMeasurement{},
+		outputFile:          outputFile,
+		CfDeploymentVersion: cfDeploymentVersion,
+		Timestamp:           timestamp,
+		Measurements:        map[string]map[string]*types.SpecMeasurement{},
 	}
 }
 
@@ -45,11 +50,11 @@ func (reporter *JsonReporter) SpecWillRun(specSummary *types.SpecSummary) {
 
 func (reporter *JsonReporter) SpecDidComplete(specSummary *types.SpecSummary) {
 	specName := strings.Join(specSummary.ComponentTexts[1:], "::")
-	reporter.measurements[specName] = specSummary.Measurements
+	reporter.Measurements[specName] = specSummary.Measurements
 }
 
 func (reporter *JsonReporter) SpecSuiteDidEnd(summary *types.SuiteSummary) {
-	data, err := json.Marshal(reporter.measurements)
+	data, err := json.Marshal(reporter)
 	if err != nil {
 		fmt.Println("failed to marshal JSON report data")
 	}

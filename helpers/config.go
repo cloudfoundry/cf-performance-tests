@@ -18,10 +18,11 @@ type User struct {
 }
 
 type Config struct {
-	API               string
-	UseHttp           bool   `mapstructure:"use_http"`
-	SkipSslValidation bool   `mapstructure:"skip_ssl_validation"`
-	NamePrefix        string `mapstructure:"name_prefix"`
+	API                 string
+	CfDeploymentVersion string `mapstructure:"cf_deployment_version"`
+	UseHttp             bool   `mapstructure:"use_http"`
+	SkipSslValidation   bool   `mapstructure:"skip_ssl_validation"`
+	NamePrefix          string `mapstructure:"name_prefix"`
 
 	LargePageSize int `mapstructure:"large_page_size"`
 	Samples       int
