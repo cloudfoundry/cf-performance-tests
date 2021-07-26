@@ -9,44 +9,49 @@ import (
 	"log"
 )
 
-const TEST_DATA_PREFIX = "perf-"
+const TestDataPrefix = "perf-%"
 
 func main() {
-	fmt.Println("Starting database test...")
-	testGoDatabaseSql("postgres://cloud_controller:fjLip8fvl0nV97OpvI7pJhSV4KQsmA@localhost:5524/cloud_controller?sslmode=disable")
-	fmt.Println("Finished.")
+	log.Print("Starting database test...")
+	cleanupTestData("postgres://cloud_controller:fjLip8fvl0nV97OpvI7pJhSV4KQsmA@localhost:5524/cloud_controller?sslmode=disable")
+	log.Print("Finished.")
 }
 
-func testGoDatabaseSql(connection string) {
+func cleanupTestData(connection string) {
 	db, err := sql.Open("pgx", connection)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
-
 	ctx := context.Background()
 
-	//cleanupTable(db, ctx, "routes", "host")
-	//cleanupTable(db, ctx, "domains", "name")
-	cleanupTable(db, ctx, "organizations", "name")
-
-	//rows, err := db.Query(`SELECT "id", "guid" FROM "users"`)
-	//CheckError(err)
-	//defer rows.Close()
-	//
-	//for rows.Next() {
-	//	var id int
-	//	var guid string
-	//
-	//	err = rows.Scan(&id, &guid)
-	//	CheckError(err)
-	//
-	//	fmt.Println(id, guid)
-	//}
+	deleteStatements := []string{
+		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
+		"DELETE FROM routes WHERE host LIKE '%s'",
+		"DELETE FROM domain_annotations USING domains WHERE domain_annotations.resource_guid = domains.guid AND domains.name LIKE '%s'",
+		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM service_bindings USING apps WHERE apps.guid = service_bindings.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM route_mappings USING apps WHERE apps.guid = route_mappings.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM apps WHERE name LIKE '%s'",
+		"DELETE FROM service_bindings USING service_instances WHERE service_instances.guid = service_bindings.service_instance_guid AND service_instances.name LIKE '%s'",
+		"DELETE FROM service_instances WHERE name LIKE '%s'",
+		"DELETE FROM security_groups_spaces USING security_groups WHERE security_groups_spaces.security_group_id = security_groups.id AND security_groups.name LIKE '%s'",
+		"DELETE FROM security_groups_spaces USING spaces WHERE security_groups_spaces.space_id = spaces.id AND spaces.name LIKE '%s'",
+		"DELETE FROM security_groups WHERE name LIKE '%s'",
+		"DELETE FROM spaces_developers USING spaces WHERE spaces_developers.space_id = spaces.id AND spaces.name LIKE '%s'",
+		"DELETE FROM spaces_managers USING spaces WHERE spaces_managers.space_id = spaces.id AND spaces.name LIKE '%s'",
+		"DELETE FROM spaces_auditors USING spaces WHERE spaces_auditors.space_id = spaces.id AND spaces.name LIKE '%s'",
+		"DELETE FROM spaces WHERE name LIKE '%s'",
+		"DELETE FROM service_plan_visibilities USING organizations WHERE service_plan_visibilities.organization_id = organizations.id AND organizations.name LIKE '%s'",
+		"DELETE FROM organizations_users USING organizations WHERE organizations_users.organization_id = organizations.id AND organizations.name LIKE '%s'",
+		"DELETE FROM organizations WHERE name LIKE '%s'",
+	}
+	for _, statement := range deleteStatements {
+		executeStatement(db, ctx, fmt.Sprintf(statement, TestDataPrefix))
+	}
 }
 
-func cleanupTable(db *sql.DB, ctx context.Context, tableName string, columnName string) {
-	statement := fmt.Sprintf("DELETE FROM %s WHERE %s LIKE '%s' ON DELETE CASCADE", tableName, columnName, TEST_DATA_PREFIX+"%")
+func executeStatement(db *sql.DB, ctx context.Context, statement string) {
 	log.Printf("Running statement: %s", statement)
 	result, err := db.ExecContext(ctx, statement)
 	if err != nil {
@@ -56,12 +61,5 @@ func cleanupTable(db *sql.DB, ctx context.Context, tableName string, columnName 
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	log.Printf("Deleted %d rows from '%s'", rows, tableName)
+	log.Printf("Statement affected %d rows.", rows)
 }
-
-//func CheckError(err error) {
-//	if err != nil {
-//		panic(err)
-//	}
-//}
