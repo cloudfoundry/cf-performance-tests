@@ -1,4 +1,4 @@
-package main
+package security_groups
 
 import (
 	"fmt"

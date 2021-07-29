@@ -1,4 +1,4 @@
-package main
+package domains
 
 import (
 	"fmt"
@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 )
+
 
 var _ = Describe("domains", func() {
 	Describe("GET /v3/domains", func() {

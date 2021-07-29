@@ -31,6 +31,8 @@ type Config struct {
 
 	BasicTimeout time.Duration `mapstructure:"basic_timeout"`
 	LongTimeout  time.Duration `mapstructure:"long_timeout"`
+	CcdbConnection  string `mapstructure:"ccdb_connection"`
+	UaadbConnection string `mapstructure:"uaadb_connection"`
 }
 
 func NewConfig() Config {
