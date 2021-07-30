@@ -5,13 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/viper"
@@ -33,60 +31,14 @@ var _ = BeforeSuite(func() {
 	testSetup.Setup()
 	ccdb, uaadb, ctx = helpers.OpenDbConnections(testConfig.CcdbConnection, testConfig.UaadbConnection)
 
-	quotaId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM quota_definitions WHERE name = 'default'")
-	var organizationIds []int
-	var spaceIds []int
-	var securityGroupIds []int
-
-	for i := 0; i < orgs; i++ {
-		guid := uuid.New()
-		name := testConfig.NamePrefix + "-org-" + guid.String()
-		statement := "INSERT INTO organizations (guid, name, quota_definition_id) VALUES ($1, $2, $3) RETURNING id"
-		organizationId := helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, guid.String(), name, quotaId)
-		organizationIds = append(organizationIds, organizationId)
-	}
-	// TODO create orgs return orgs id; create spaces return space id ; 1 org = 1 space;
-
-	for _, orgId := range organizationIds{
-		for i := 0; i<spaces; i++ {
-			spaceGuid := uuid.New()
-			spaceName := testConfig.NamePrefix + "-space-" + spaceGuid.String()
-			statement := "INSERT INTO spaces (guid, name, organization_id) VALUES ($1, $2, $3) RETURNING id"
-			spaceId := helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, spaceGuid.String(), spaceName, orgId)
-			spaceIds = append(spaceIds, spaceId)
-		}
-	}
-
-	for i := 0; i<securityGroups; i++ {
-		securityGroupsGuid := uuid.New()
-		securityGroupName := testConfig.NamePrefix + "-securitygroup-" + securityGroupsGuid.String()
-		securityRule := `[
-  {
-	"protocol": "icmp",
-	"destination": "0.0.0.0/0",
-	"type": 0,
-	"code": 0
-  },
-  {
-	"protocol": "tcp",
-	"destination": "10.0.11.0/24",
-	"ports": "80,443",
-	"log": true,
-	"description": "Allow http and https traffic to ZoneA"
-  }
-]`
-		statement := "INSERT INTO security_groups (guid, name, rules) VALUES ($1, $2, $3) RETURNING id"
-		securityGroupId := helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, securityGroupsGuid.String(), securityGroupName, securityRule)
-		securityGroupIds = append(securityGroupIds, securityGroupId)
-	}
-
-	for _, spaceId := range spaceIds{
-		for i := 0; i<5; i++ {
-			securityGroupId := securityGroupIds[rand.Intn(len(securityGroupIds))]
-			statement := "INSERT INTO security_groups_spaces (security_group_id, space_id) VALUES ($1, $2) RETURNING security_groups_spaces_pk"
-			helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, securityGroupId, spaceId)
-		}
-	}
+	createOrgStatement := fmt.Sprintf(`SELECT FROM create_test_orgs(%v)`, orgs)
+	createSpaceStatement := fmt.Sprintf(`SELECT FROM create_test_spaces(%v)`, spaces)
+	createSecurityGroupStatement := fmt.Sprintf(`SELECT FROM create_test_security_groups(%v)`, securityGroups)
+	createSecurityGroupSpaceStatement := fmt.Sprintf(`SELECT FROM create_test_security_group_spaces()`)
+	helpers.ExecuteStatement(ccdb, ctx, createOrgStatement)
+	helpers.ExecuteStatement(ccdb, ctx, createSpaceStatement)
+	helpers.ExecuteStatement(ccdb, ctx, createSecurityGroupStatement)
+	helpers.ExecuteStatement(ccdb, ctx, createSecurityGroupSpaceStatement)
 
 })
 

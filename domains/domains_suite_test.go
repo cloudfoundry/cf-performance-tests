@@ -5,13 +5,11 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/viper"
@@ -22,9 +20,10 @@ var testSetup *workflowhelpers.ReproducibleTestSuiteSetup
 var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
+
 const (
-	orgs = 10
-	sharedDomains = 10
+	orgs           = 10
+	sharedDomains  = 10
 	privateDomains = 10
 )
 
@@ -33,30 +32,15 @@ var _ = BeforeSuite(func() {
 	testSetup.Setup()
 	ccdb, uaadb, ctx = helpers.OpenDbConnections(testConfig.CcdbConnection, testConfig.UaadbConnection)
 
-	quotaId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM quota_definitions WHERE name = 'default'")
-	var organizationIds []int
+	//quotaId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM quota_definitions WHERE name = 'default'")
+	// required create functions and pass it to the database once. Then we can just call the stored db functions here.
 
-	for i := 0; i < orgs; i++ {
-		guid := uuid.New()
-		name := testConfig.NamePrefix + "-org-" + guid.String()
-		statement := "INSERT INTO organizations (guid, name, quota_definition_id) VALUES ($1, $2, $3) RETURNING id"
-		organizationId := helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, guid.String(), name, quotaId)
-		organizationIds = append(organizationIds, organizationId)
-	}
-	for i := 0; i<sharedDomains; i++ {
-		sharedDomainGuid := uuid.New()
-		sharedDomainName := testConfig.NamePrefix + "-shareddomain-" + sharedDomainGuid.String()
-		statement := "INSERT INTO domains (guid, name) VALUES ($1, $2) RETURNING id"
-		helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, sharedDomainGuid.String(), sharedDomainName)
-	}
-
-	for i := 0; i<privateDomains; i++ {
-		privateDomainGuid := uuid.New()
-		privateDomainName := testConfig.NamePrefix + "-privatedomain-" + privateDomainGuid.String()
-		owningOrganizationId := organizationIds[rand.Intn(len(organizationIds))]
-		statement := "INSERT INTO domains (guid, name, owning_organization_id) VALUES ($1, $2, $3) RETURNING id"
-		helpers.ExecutePreparedInsertStatement(ccdb, ctx, statement, privateDomainGuid.String(), privateDomainName, owningOrganizationId)
-	}
+	createOrgStatement := fmt.Sprintf(`SELECT FROM create_test_orgs(%v)`, orgs)
+	createSharedDomainStatement := fmt.Sprintf(`SELECT FROM create_test_shared_domains(%v)`, sharedDomains)
+	createPrivateDomainStatement := fmt.Sprintf(`SELECT FROM create_test_private_domains(%v)`, privateDomains)
+	helpers.ExecuteStatement(ccdb, ctx, createOrgStatement)
+	helpers.ExecuteStatement(ccdb, ctx, createSharedDomainStatement)
+	helpers.ExecuteStatement(ccdb, ctx, createPrivateDomainStatement)
 
 })
 
@@ -95,4 +79,3 @@ func TestDomains(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "DomainsTest Suite", []Reporter{jsonReporter})
 }
-

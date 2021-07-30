@@ -12,12 +12,12 @@ import (
 const TestDataPrefix = "perf-%"
 
 
-func OpenDbConnections(ccdbConnection string, uaaConnection string)(ccdb, uaadb *sql.DB, ctx context.Context){
+func OpenDbConnections(ccdbConnection string, uaadbConnection string)(ccdb, uaadb *sql.DB, ctx context.Context){
 
 	ccdb, err := sql.Open("pgx", ccdbConnection)
 	checkError(err)
 
-	uaadb, err = sql.Open("pgx", uaaConnection)
+	uaadb, err = sql.Open("pgx", uaadbConnection)
 	checkError(err)
 
 	ctx = context.Background()
