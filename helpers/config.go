@@ -20,6 +20,7 @@ type User struct {
 type Config struct {
 	API                 string
 	CfDeploymentVersion string `mapstructure:"cf_deployment_version"`
+	CapiVersion			string `mapstructure:"capi_version"`
 	UseHttp             bool   `mapstructure:"use_http"`
 	SkipSslValidation   bool   `mapstructure:"skip_ssl_validation"`
 	NamePrefix          string `mapstructure:"name_prefix"`

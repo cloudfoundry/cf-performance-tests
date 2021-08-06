@@ -25,12 +25,14 @@ type JsonReporter struct {
 	outputFile          string
 	CfDeploymentVersion string `json:"cfDeploymentVersion"`
 	Timestamp           int64  `json:"timestamp"`
+	CapiVersion         string `json:"capiVersion"`
 }
 
-func NewJsonReporter(outputFile string, cfDeploymentVersion string, timestamp int64) *JsonReporter {
+func NewJsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64) *JsonReporter {
 	return &JsonReporter{
 		outputFile:          outputFile,
 		CfDeploymentVersion: cfDeploymentVersion,
+		CapiVersion:		 CapiVersion,
 		Timestamp:           timestamp,
 		Measurements:        map[string]map[string]*types.SpecMeasurement{},
 	}
