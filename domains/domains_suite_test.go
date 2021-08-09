@@ -22,7 +22,7 @@ var uaadb *sql.DB
 var ctx context.Context
 
 const (
-	orgs           = 10
+	orgs           = 1000
 	sharedDomains  = 10
 	privateDomains = 10
 )
