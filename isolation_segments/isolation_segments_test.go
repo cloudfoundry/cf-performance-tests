@@ -1,4 +1,4 @@
-package domains
+package isolation_segments
 
 import (
 	"fmt"
@@ -13,14 +13,14 @@ import (
 	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 )
 
-var _ = Describe("domains", func() {
-	Describe("GET /v3/domains", func() {
+var _ = Describe("isolation segments", func() {
+	Describe("GET /v3/isolation_segments", func() {
 		Measure("as admin", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				b.Time("request time", func() {
 					Expect(
 						cf.Cf(
-							"curl", "--fail", "/v3/domains",
+							"curl", "--fail", "/v3/isolation_segments",
 						).Wait(testConfig.BasicTimeout),
 					).To(Exit(0))
 				})
@@ -32,7 +32,7 @@ var _ = Describe("domains", func() {
 				b.Time("request time", func() {
 					Expect(
 						cf.Cf(
-							"curl", "--fail", "/v3/domains",
+							"curl", "--fail", "/v3/isolation_segments",
 						).Wait(testConfig.BasicTimeout),
 					).To(Exit(0))
 				})
@@ -44,7 +44,7 @@ var _ = Describe("domains", func() {
 				b.Time("request time", func() {
 					Expect(
 						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize),
+							"curl", "--fail", fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize),
 						).Wait(testConfig.LongTimeout),
 					).To(Exit(0))
 				})
@@ -52,16 +52,16 @@ var _ = Describe("domains", func() {
 		}, testConfig.Samples)
 	})
 
-	Describe("GET /v3/organizations/:guid/domains", func() {
+	Describe("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
 		Measure("as admin", func(b Benchmarker) {
-			orgGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/organizations")
-			Expect(orgGUIDs).NotTo(BeNil())
-			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
+			isolationSegmentGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/isolation_segments")
+			Expect(isolationSegmentGUIDs).NotTo(BeNil())
+			isolationSegmentGUID := isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 				b.Time("request time", func() {
 					Expect(
 						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/organizations/%s/domains", orgGUID),
+							"curl", "--fail", fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID),
 						).Wait(testConfig.BasicTimeout),
 					).To(Exit(0))
 				})
@@ -69,14 +69,14 @@ var _ = Describe("domains", func() {
 		}, testConfig.Samples)
 
 		Measure("as regular user", func(b Benchmarker) {
-			orgGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/organizations")
-			Expect(orgGUIDs).NotTo(BeNil())
-			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
+			isolationSegmentGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/isolation_segments")
+			Expect(isolationSegmentGUIDs).NotTo(BeNil())
+			isolationSegmentGUID := isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 				b.Time("request time", func() {
 					Expect(
 						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/organizations/%s/domains", orgGUID),
+							"curl", "--fail", fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID),
 						).Wait(testConfig.BasicTimeout),
 					).To(Exit(0))
 				})
@@ -86,64 +86,49 @@ var _ = Describe("domains", func() {
 
 	Describe("individually", func() {
 		Describe("as admin", func() {
-			var domainGUID string
+			var isolationSegmentGUID string
 			BeforeEach(func() {
-				domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
-				Expect(domainGUIDs).NotTo(BeNil())
-				domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
+				isolationSegmentGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/isolation_segments")
+				Expect(isolationSegmentGUIDs).NotTo(BeNil())
+				isolationSegmentGUID = isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 			})
 
-			Measure("GET /v3/domains/:guid", func(b Benchmarker) {
+			Measure("GET /v3/isolation_segments/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					b.Time("request time", func() {
 						Expect(
 							cf.Cf(
-								"curl", "--fail", fmt.Sprintf("/v3/domains/%s", domainGUID),
+								"curl", "--fail", fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID),
 							).Wait(testConfig.BasicTimeout),
 						).To(Exit(0))
 					})
 				})
 			}, testConfig.Samples)
 
-			Measure("PATCH /v3/domains/:guid", func(b Benchmarker) {
+			Measure("PATCH /v3/isolation_segments/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					b.Time("request time", func() {
-						data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
+						data := fmt.Sprintf(`{"name":"perf-updated-isolation-segment-%s"}`, isolationSegmentGUID)
 						Expect(
 							cf.Cf(
-								"curl", "--fail", "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID),
+								"curl", "--fail", "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID),
 							).Wait(testConfig.BasicTimeout),
 						).To(Exit(0))
 					})
-				})
-			}, testConfig.Samples)
-
-			Measure("DELETE /v3/domains/:guid", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
-
-					// Wait until "GET /v3/domains/:guid" fails.
-					helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
 				})
 			}, testConfig.Samples)
 		})
 
 		Describe("as regular user", func() {
-			Measure("GET /v3/domains/:guid", func(b Benchmarker) {
-				domainGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/domains")
-				Expect(domainGUIDs).NotTo(BeNil())
-				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
+			Measure("GET /v3/isolation_segments/:guid", func(b Benchmarker) {
+				isolationSegmentGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/isolation_segments")
+				Expect(isolationSegmentGUIDs).NotTo(BeNil())
+				isolationSegmentGUID := isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 					b.Time("request time", func() {
 						Expect(
 							cf.Cf(
-								"curl", "--fail", fmt.Sprintf("/v3/domains/%s", domainGUID),
+								"curl", "--fail", fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID),
 							).Wait(testConfig.BasicTimeout),
 						).To(Exit(0))
 					})

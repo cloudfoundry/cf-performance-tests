@@ -1,5 +1,4 @@
 # cf-performance-tests
-
 Performance tests for the Cloud Foundry API (Cloud Controller).
 
 ## Goals
@@ -21,24 +20,29 @@ The test suite uses [Viper](https://github.com/spf13/viper) for configuration of
 
 To run the tests, create a configuration file that Viper can find, e.g. `config.yml` in the project's root folder:
 ```yaml
-api: "<test CF API>"
-use_http: false
-skip_ssl_validation: false
-name_prefix: "perf"
-samples: 10
-basictimeout: 30
-longtimeout: 120
+api: "<CF API endpoint>"
+use_http: false  (the default value)
+skip_ssl_validation: false (the default value)
+cf_deployment_version: "<used for generated report>"
+capi_version: "<used for generated report>"
+large_page_size: 500  (the default value)
+large_elements_filter: 100  (the default value)
+samples: 5  (the default value)
+basictimeout: 30  (the default value)
+longtimeout: 120  (the default value)
 users:
   admin:
     username: "<admin username>"
     password: "<admin password>"
-  existing:
+  existing:  (optional block)
     username: "<non-admin username>"
     password: "<non-admin password>"
+ccdb_connection: "<connection string for CCDB>"
+uaadb_connection: "<connection string for UAADB>"  (optional, used to cleanup the created test user)
 ```
 The `name_prefix` string must match the prefix of the test resources names. Note that some performance tests delete lists of resources. Using a `name_prefix` ensures that only test resources are deleted.
 
 Then run:
 ```bash
-ginkgo
+ginkgo -r
 ```
