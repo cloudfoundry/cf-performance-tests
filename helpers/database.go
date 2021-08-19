@@ -65,7 +65,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM services WHERE label LIKE '%s'",
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
-	nameQuery := fmt.Sprintf("%s-", testConfig.GetNamePrefix())
+	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
 
 	for _, statement := range deleteStatements {
 		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
