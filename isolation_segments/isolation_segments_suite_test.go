@@ -1,4 +1,4 @@
-package domains
+package isolation_segments
 
 import (
 	"context"
@@ -24,13 +24,14 @@ var ctx context.Context
 
 const (
 	// main test parameters:
-	orgs           = 20000
-	sharedDomains  = 100
-	privateDomains = 400
+	orgs              = 20000
+	isolationSegments = 500
+
+	orgsWithinIsolationSegments = orgs / 2 // 50%
 )
 
 var _ = BeforeSuite(func() {
-	Expect(sharedDomains + privateDomains).To(BeNumerically(">=", testConfig.LargePageSize))
+	Expect(isolationSegments).To(BeNumerically(">=", testConfig.LargePageSize))
 
 	testSetup = workflowhelpers.NewTestSuiteSetup(&testConfig)
 	testSetup.Setup()
@@ -38,16 +39,16 @@ var _ = BeforeSuite(func() {
 	helpers.ImportStoredProcedures(ccdb, ctx)
 
 	// create orgs
-	createOrgStatement := fmt.Sprintf("SELECT FROM create_orgs(%d)", orgs)
-	helpers.ExecuteStatement(ccdb, ctx, createOrgStatement)
+	createOrgsStatement := fmt.Sprintf("SELECT FROM create_orgs(%v)", orgs)
+	helpers.ExecuteStatement(ccdb, ctx, createOrgsStatement)
 
-	// create shared domains
-	createSharedDomainsStatement := fmt.Sprintf("SELECT FROM create_shared_domains(%d)", sharedDomains)
-	helpers.ExecuteStatement(ccdb, ctx, createSharedDomainsStatement)
+	// create isolation segments
+	createIsolationSegmentsStatement := fmt.Sprintf("SELECT FROM create_isolation_segments(%v)", isolationSegments)
+	helpers.ExecuteStatement(ccdb, ctx, createIsolationSegmentsStatement)
 
-	// create private domains; evenly assigned to random orgs
-	createPrivateDomainsStatement := fmt.Sprintf("SELECT FROM create_private_domains(%d)", privateDomains)
-	helpers.ExecuteStatement(ccdb, ctx, createPrivateDomainsStatement)
+	// assign orgs to isolation segments; n orgs are assigned to a random isolation segment
+	assignOrgsToIsolationSegmentsStatement := fmt.Sprintf("SELECT FROM assign_orgs_to_isolation_segments(%d)", orgsWithinIsolationSegments)
+	helpers.ExecuteStatement(ccdb, ctx, assignOrgsToIsolationSegmentsStatement)
 
 	// assign the regular user to all orgs
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
@@ -72,7 +73,7 @@ var _ = AfterSuite(func() {
 	}
 })
 
-func TestDomains(t *testing.T) {
+func TestIsolationSegments(t *testing.T) {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("..")
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
@@ -87,8 +88,8 @@ func TestDomains(t *testing.T) {
 	}
 
 	timestamp := time.Now().Unix()
-	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../test-results/domains-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../test-results/isolation-segments-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 
 	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "DomainsTest Suite", []Reporter{jsonReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "IsolationSegmentsTest Suite", []Reporter{jsonReporter})
 }

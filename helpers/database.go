@@ -4,28 +4,36 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"io/ioutil"
+	"log"
+
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"log"
 )
 
-const TestDataPrefix = "perf-%"
-
-
-func OpenDbConnections(ccdbConnection string, uaadbConnection string)(ccdb, uaadb *sql.DB, ctx context.Context){
-
-	ccdb, err := sql.Open("pgx", ccdbConnection)
+func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
+	ccdb, err := sql.Open("pgx", testConfig.CcdbConnection)
 	checkError(err)
 
-	uaadb, err = sql.Open("pgx", uaadbConnection)
-	checkError(err)
+	if testConfig.UaadbConnection != "" {
+		uaadb, err = sql.Open("pgx", testConfig.UaadbConnection)
+		checkError(err)
+	}
 
 	ctx = context.Background()
 
 	return
 }
 
-func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context) {
+func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context) {
+	content, err := ioutil.ReadFile("../scripts/pgsql_functions.sql")
+	if err != nil {
+		log.Fatal(err)
+	}
+	ExecuteStatement(ccdb, ctx, string(content))
+}
+
+func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
 	deleteStatements := []string{
 		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
 		"DELETE FROM routes WHERE host LIKE '%s'",
@@ -45,7 +53,11 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context) {
 		"DELETE FROM spaces WHERE name LIKE '%s'",
 		"DELETE FROM service_plan_visibilities USING organizations WHERE service_plan_visibilities.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_users USING organizations WHERE organizations_users.organization_id = organizations.id AND organizations.name LIKE '%s'",
+		"DELETE FROM organizations_managers USING organizations WHERE organizations_managers.organization_id = organizations.id AND organizations.name LIKE '%s'",
+		"DELETE FROM organizations_isolation_segments USING organizations WHERE organizations_isolation_segments.organization_guid = organizations.guid AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
+		"DELETE FROM isolation_segment_annotations USING isolation_segments WHERE isolation_segment_annotations.resource_guid = isolation_segments.guid AND isolation_segments.name LIKE '%s'",
+		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
 		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
 		"DELETE FROM events WHERE actee_name LIKE '%s'",
 		"DELETE FROM service_plan_visibilities USING service_plans WHERE service_plans.id = service_plan_visibilities.service_plan_id AND service_plans.name LIKE '%s'",
@@ -53,18 +65,21 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context) {
 		"DELETE FROM services WHERE label LIKE '%s'",
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
+	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
+
 	for _, statement := range deleteStatements {
-		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, TestDataPrefix))
+		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 	}
 
-	userGuids := ExecuteSelectStatement(uaadb, ctx, fmt.Sprintf("SELECT id FROM users WHERE username LIKE '%s'", TestDataPrefix))
+	if uaadb != nil {
+		userGuids := ExecuteSelectStatement(uaadb, ctx, fmt.Sprintf("SELECT id FROM users WHERE username LIKE '%s'", nameQuery))
 
-	for _, userGuid := range userGuids {
-		ExecuteStatement(ccdb, ctx, fmt.Sprintf("DELETE FROM users WHERE guid = '%s'", userGuid))
+		for _, userGuid := range userGuids {
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DELETE FROM users WHERE guid = '%s'", userGuid))
+		}
+
+		ExecuteStatement(uaadb, ctx, fmt.Sprintf("DELETE FROM users WHERE username LIKE '%s'", nameQuery))
 	}
-
-	ExecuteStatement(uaadb, ctx, fmt.Sprintf("DELETE FROM users WHERE username LIKE '%s'", TestDataPrefix))
-
 }
 
 func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {
@@ -74,7 +89,7 @@ func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {
 	checkError(err)
 }
 
-func ExecutePreparedInsertStatement(db *sql.DB, ctx context.Context, statement string, args ...interface{})int{
+func ExecutePreparedInsertStatement(db *sql.DB, ctx context.Context, statement string, args ...interface{}) int {
 	var lastInsertId int
 	stmt, err := db.PrepareContext(ctx, statement)
 	checkError(err)

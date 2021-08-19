@@ -32,7 +32,7 @@ func NewJsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion 
 	return &JsonReporter{
 		outputFile:          outputFile,
 		CfDeploymentVersion: cfDeploymentVersion,
-		CapiVersion:		 CapiVersion,
+		CapiVersion:         CapiVersion,
 		Timestamp:           timestamp,
 		Measurements:        map[string]map[string]*types.SpecMeasurement{},
 	}

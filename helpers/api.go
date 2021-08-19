@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
@@ -11,26 +12,70 @@ import (
 )
 
 type APIResponse struct {
+	Pagination struct {
+		TotalResults int `json:"total_results"`
+	}
 	Resources []struct {
-		GUID string `json:"guid"`
-		Name string `json:"name"`
+		GUID     string `json:"guid"`
+		Name     string `json:"name"`
+		UserName string `json:"username"`
 	} `json:"resources"`
 }
 
-func GetGUIDs(user workflowhelpers.UserContext, testConfig Config, endpoint string) []string {
+func apiCall(user workflowhelpers.UserContext, testConfig Config, endpoint string) *APIResponse {
 	var session *Session
-	var resp APIResponse
-	var guids []string
+	var resp *APIResponse
 	workflowhelpers.AsUser(user, testConfig.BasicTimeout, func() {
-		session = cf.Cf("curl", endpoint)
-		Expect(session.Wait(testConfig.BasicTimeout)).To(Exit(0))
+		session = cf.Cf("curl", "--fail", endpoint).Wait(testConfig.BasicTimeout)
+		Expect(session).To(Exit(0))
 	})
-	json.Unmarshal(session.Out.Contents(), &resp)
-	for _, item := range resp.Resources {
-		// do not select non-test resources (e.g. the default CF orgs or security groups)
-		if strings.HasPrefix(item.Name, testConfig.GetNamePrefix()) {
-			guids = append(guids, item.GUID)
+	err := json.Unmarshal(session.Out.Contents(), &resp)
+	if err != nil {
+		return nil
+	}
+	return resp
+}
+
+func GetGUIDs(user workflowhelpers.UserContext, testConfig Config, endpoint string) []string {
+	var guids []string
+	resp := apiCall(user, testConfig, endpoint)
+	if resp != nil {
+		for _, item := range resp.Resources {
+			// do not select non-test resources (e.g. the default CF orgs or security groups)
+			name := item.Name
+			if name == "" {
+				name = item.UserName
+			}
+			if strings.HasPrefix(name, testConfig.GetNamePrefix()+"-") {
+				guids = append(guids, item.GUID)
+			}
 		}
 	}
 	return guids
+}
+
+func GetUserGUID(user workflowhelpers.UserContext, testConfig Config) string {
+	userGUIDs := GetGUIDs(user, testConfig, fmt.Sprintf("/v3/users?usernames=%s", user.Username))
+	if userGUIDs != nil {
+		Expect(len(userGUIDs)).To(Equal(1))
+		return userGUIDs[0]
+	}
+	return ""
+}
+
+func WaitToFail(user workflowhelpers.UserContext, testConfig Config, endpoint string) {
+	workflowhelpers.AsUser(user, testConfig.BasicTimeout, func() {
+		for exitCode := -1; exitCode <= 0; {
+			exitCode = cf.Cf("curl", "--fail", endpoint).Wait(testConfig.BasicTimeout).ExitCode()
+		}
+	})
+}
+
+func GetTotalResults(user workflowhelpers.UserContext, testConfig Config, endpoint string) int {
+	var totalResults int
+	resp := apiCall(user, testConfig, endpoint)
+	if resp != nil {
+		totalResults = resp.Pagination.TotalResults
+	}
+	return totalResults
 }
