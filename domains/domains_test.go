@@ -17,37 +17,43 @@ var _ = Describe("domains", func() {
 	Describe("GET /v3/domains", func() {
 		Measure("as admin", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", "/v3/domains",
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				result := cf.Cf(
+					"curl", "--fail", "/v3/domains", "-v",
+				).Wait(testConfig.BasicTimeout)
+				Expect(
+					result,
+				).To(Exit(0))
+
+				runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+				b.RecordValue("request time", runtime)
 			})
 		}, testConfig.Samples)
 
 		Measure("as regular user", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", "/v3/domains",
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				result := cf.Cf(
+					"curl", "--fail", "/v3/domains", "-v",
+				).Wait(testConfig.BasicTimeout)
+				Expect(
+					result,
+				).To(Exit(0))
+
+				runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+				b.RecordValue("request time", runtime)
 			})
 		}, testConfig.Samples)
 
 		Measure("as admin with large page size", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize),
-						).Wait(testConfig.LongTimeout),
-					).To(Exit(0))
-				})
+				result := cf.Cf(
+					"curl", "--fail", fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize), "-v",
+				).Wait(testConfig.LongTimeout)
+				Expect(
+					result,
+				).To(Exit(0))
+
+				runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+				b.RecordValue("request time", runtime)
 			})
 		}, testConfig.Samples)
 	})
@@ -58,13 +64,15 @@ var _ = Describe("domains", func() {
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/organizations/%s/domains", orgGUID),
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				result := cf.Cf(
+					"curl", "--fail", fmt.Sprintf("/v3/organizations/%s/domains", orgGUID), "-v",
+				).Wait(testConfig.BasicTimeout)
+				Expect(
+					result,
+				).To(Exit(0))
+
+				runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+				b.RecordValue("request time", runtime)
 			})
 		}, testConfig.Samples)
 
@@ -73,13 +81,15 @@ var _ = Describe("domains", func() {
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/organizations/%s/domains", orgGUID),
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				result := cf.Cf(
+					"curl", "--fail", fmt.Sprintf("/v3/organizations/%s/domains", orgGUID), "-v",
+				).Wait(testConfig.BasicTimeout)
+				Expect(
+					result,
+				).To(Exit(0))
+
+				runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+				b.RecordValue("request time", runtime)
 			})
 		}, testConfig.Samples)
 	})
@@ -95,38 +105,44 @@ var _ = Describe("domains", func() {
 
 			Measure("GET /v3/domains/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", fmt.Sprintf("/v3/domains/%s", domainGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					result := cf.Cf(
+						"curl", "--fail", fmt.Sprintf("/v3/domains/%s", domainGUID), "-v",
+					).Wait(testConfig.BasicTimeout)
+					Expect(
+						result,
+					).To(Exit(0))
+
+					runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+					b.RecordValue("request time", runtime)
 				})
 			}, testConfig.Samples)
 
 			Measure("PATCH /v3/domains/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
-						Expect(
-							cf.Cf(
-								"curl", "--fail", "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
+					result := cf.Cf(
+						"curl", "--fail", "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID), "-v",
+					).Wait(testConfig.BasicTimeout)
+					Expect(
+						result,
+					).To(Exit(0))
+
+					runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+					b.RecordValue("request time", runtime)
 				})
 			}, testConfig.Samples)
 
 			Measure("DELETE /v3/domains/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					result := cf.Cf(
+						"curl", "--fail", "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID), "-v",
+					).Wait(testConfig.BasicTimeout)
+					Expect(
+						result,
+					).To(Exit(0))
+
+					runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+					b.RecordValue("request time", runtime)
 
 					// Wait until "GET /v3/domains/:guid" fails.
 					helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
@@ -140,13 +156,15 @@ var _ = Describe("domains", func() {
 				Expect(domainGUIDs).NotTo(BeNil())
 				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", fmt.Sprintf("/v3/domains/%s", domainGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					result := cf.Cf(
+						"curl", "--fail", fmt.Sprintf("/v3/domains/%s", domainGUID), "-v",
+					).Wait(testConfig.BasicTimeout)
+					Expect(
+						result,
+					).To(Exit(0))
+
+					runtime := helpers.GetXRuntimeHeader(result.Out.Contents())
+					b.RecordValue("request time", runtime)
 				})
 			}, testConfig.Samples)
 		})
