@@ -85,12 +85,11 @@ func GetTotalResults(user workflowhelpers.UserContext, testConfig Config, endpoi
 }
 
 func GetXRuntimeHeader(response []byte) float64 {
-	responseString := string(response)
 	regexp := regexp.MustCompile(`X-Runtime: (\d+.?\d+)`)
-	matches := regexp.FindStringSubmatch(responseString)
+	matches := regexp.FindSubmatch(response)
 	ExpectWithOffset(1, matches).ToNot(BeEmpty(), "Response did not contain X-Runtime header")
-	
-	runtime, err := strconv.ParseFloat(matches[1], 64)
+
+	runtime, err := strconv.ParseFloat(string(matches[1]), 64)
 	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Runtime header could not be parsed from string to float64")
 	return runtime
 }
