@@ -99,11 +99,8 @@ func TimeCFCurl(b ginkgo.Benchmarker, timeout time.Duration, curlArguments ...st
 
 	var args = []string{"curl", "--fail", "-v"}
 	args = append(args, curlArguments...)
-	result := cf.Cf(args...
-	).Wait(timeout)
-	Expect(
-		result,
-	).To(Exit(0))
+	result := cf.Cf(args...).Wait(timeout)
+	Expect(result).To(Exit(0))
 
 	runtime := GetXRuntimeHeader(result.Out.Contents())
 	b.RecordValue("request time", runtime)
