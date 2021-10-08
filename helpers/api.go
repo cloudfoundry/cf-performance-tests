@@ -3,9 +3,11 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/onsi/ginkgo"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
@@ -95,4 +97,18 @@ func GetXRuntimeHeader(response []byte) float64 {
 		panic("Runtime could not be parsed from string to float64")
 	}
 	return runtime
+}
+
+func TimeCFCurl(b ginkgo.Benchmarker, timeout time.Duration, curlArguments ...string) {
+
+	var args = []string{"curl", "--fail", "-v"}
+	args = append(args, curlArguments...)
+	result := cf.Cf(args...
+	).Wait(timeout)
+	Expect(
+		result,
+	).To(Exit(0))
+
+	runtime := GetXRuntimeHeader(result.Out.Contents())
+	b.RecordValue("request time", runtime)
 }
