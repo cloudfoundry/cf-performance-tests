@@ -3,7 +3,11 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/onsi/ginkgo"
+	"regexp"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
@@ -78,4 +82,25 @@ func GetTotalResults(user workflowhelpers.UserContext, testConfig Config, endpoi
 		totalResults = resp.Pagination.TotalResults
 	}
 	return totalResults
+}
+
+func GetXRuntimeHeader(response []byte) float64 {
+	regexp := regexp.MustCompile(`X-Runtime: (\d+.?\d+)`)
+	matches := regexp.FindSubmatch(response)
+	ExpectWithOffset(1, matches).ToNot(BeEmpty(), "Response did not contain X-Runtime header")
+
+	runtime, err := strconv.ParseFloat(string(matches[1]), 64)
+	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Runtime header could not be parsed from string to float64")
+	return runtime
+}
+
+func TimeCFCurl(b ginkgo.Benchmarker, timeout time.Duration, curlArguments ...string) {
+
+	var args = []string{"curl", "--fail", "-v"}
+	args = append(args, curlArguments...)
+	result := cf.Cf(args...).Wait(timeout)
+	Expect(result).To(Exit(0))
+
+	runtime := GetXRuntimeHeader(result.Out.Contents())
+	b.RecordValue("request time", runtime)
 }

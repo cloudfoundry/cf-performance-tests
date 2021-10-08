@@ -5,50 +5,29 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/gexec"
-
-	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 )
 
 var _ = Describe("security groups", func() {
 	Describe("GET /v3/security_groups", func() {
 		Measure("as admin", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", "/v3/security_groups",
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/security_groups")
 			})
 		}, testConfig.Samples)
 
 		Measure("as regular user", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", "/v3/security_groups",
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/security_groups")
 			})
 		}, testConfig.Samples)
 
 		Measure("as admin with large page size", func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize),
-						).Wait(testConfig.LongTimeout),
-					).To(Exit(0))
-				})
+				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize))
 			})
 		}, testConfig.Samples)
 
@@ -58,13 +37,7 @@ var _ = Describe("security groups", func() {
 			Expect(len(spaceGUIDs)).To(Equal(testConfig.LargeElementsFilter))
 			spaceGUIDs = helpers.Shuffle(spaceGUIDs)
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				b.Time("request time", func() {
-					Expect(
-						cf.Cf(
-							"curl", "--fail", fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")),
-						).Wait(testConfig.BasicTimeout),
-					).To(Exit(0))
-				})
+				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")))
 			})
 		}, testConfig.Samples)
 	})
@@ -80,38 +53,20 @@ var _ = Describe("security groups", func() {
 
 			Measure("GET /v3/security_groups/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 				})
 			}, testConfig.Samples)
 
 			Measure("PATCH /v3/security_groups/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						data := fmt.Sprintf(`{"name":"perf-updated-security-group-%s"}`, securityGroupGUID)
-						Expect(
-							cf.Cf(
-								"curl", "--fail", "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					data := fmt.Sprintf(`{"name":"perf-updated-security-group-%s"}`, securityGroupGUID)
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 				})
 			}, testConfig.Samples)
 
 			Measure("DELETE /v3/security_groups/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", "-X", "DELETE", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 
 					// Wait until "GET /v3/security_groups/:guid" fails.
 					helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
@@ -125,13 +80,7 @@ var _ = Describe("security groups", func() {
 				Expect(securityGroupGUIDs).NotTo(BeNil())
 				securityGroupGUID := securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					b.Time("request time", func() {
-						Expect(
-							cf.Cf(
-								"curl", "--fail", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID),
-							).Wait(testConfig.BasicTimeout),
-						).To(Exit(0))
-					})
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 				})
 			}, testConfig.Samples)
 		})
