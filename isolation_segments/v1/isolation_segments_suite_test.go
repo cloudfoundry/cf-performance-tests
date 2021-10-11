@@ -75,7 +75,7 @@ var _ = AfterSuite(func() {
 
 func TestIsolationSegments(t *testing.T) {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("..")
+	viper.AddConfigPath("../../")
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -88,7 +88,7 @@ func TestIsolationSegments(t *testing.T) {
 	}
 
 	timestamp := time.Now().Unix()
-	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../test-results/isolation-segments-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../../test-results/isolation-segments-test-results/v1/isolation-segments-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "IsolationSegmentsTest Suite", []Reporter{jsonReporter})

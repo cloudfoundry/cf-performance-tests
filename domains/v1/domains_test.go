@@ -24,7 +24,7 @@ var _ = Describe("domains", func() {
 			})
 		}, testConfig.Samples)
 
-		Measure("as admin with large page size", func(b Benchmarker) {
+		Measure(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
 			})
