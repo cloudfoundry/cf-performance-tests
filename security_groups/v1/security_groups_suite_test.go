@@ -81,7 +81,7 @@ var _ = AfterSuite(func() {
 
 func TestSecurityGroups(t *testing.T) {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("..")
+	viper.AddConfigPath("../../")
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -94,7 +94,7 @@ func TestSecurityGroups(t *testing.T) {
 	}
 
 	timestamp := time.Now().Unix()
-	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../test-results/security-groups-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../../test-results/security-groups-test-results/v1/security-groups-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "SecurityGroupsTest Suite", []Reporter{jsonReporter})

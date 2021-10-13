@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"path"
+	"runtime"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -26,7 +28,12 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 }
 
 func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context) {
-	content, err := ioutil.ReadFile("../scripts/pgsql_functions.sql")
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("Failed to retrieve current file location")
+	}
+
+	content, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.sql"))
 	if err != nil {
 		log.Fatal(err)
 	}

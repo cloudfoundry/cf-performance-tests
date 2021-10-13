@@ -74,7 +74,7 @@ var _ = AfterSuite(func() {
 
 func TestDomains(t *testing.T) {
 	viper.SetConfigName("config")
-	viper.AddConfigPath("..")
+	viper.AddConfigPath("../../")
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
 	err := viper.ReadInConfig()
 	if err != nil {
@@ -87,7 +87,7 @@ func TestDomains(t *testing.T) {
 	}
 
 	timestamp := time.Now().Unix()
-	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../test-results/domains-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../../test-results/domains-test-results/v1/domains-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 
 	RegisterFailHandler(Fail)
 	RunSpecsWithDefaultAndCustomReporters(t, "DomainsTest Suite", []Reporter{jsonReporter})

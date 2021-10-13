@@ -25,13 +25,13 @@ var _ = Describe("security groups", func() {
 			})
 		}, testConfig.Samples)
 
-		Measure("as admin with large page size", func(b Benchmarker) {
+		Measure(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize))
 			})
 		}, testConfig.Samples)
 
-		Measure("as admin with space filter", func(b Benchmarker) {
+		Measure(fmt.Sprintf("as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func(b Benchmarker) {
 			spaceGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/spaces?per_page=%d", testConfig.LargeElementsFilter))
 			Expect(spaceGUIDs).NotTo(BeNil())
 			Expect(len(spaceGUIDs)).To(Equal(testConfig.LargeElementsFilter))
