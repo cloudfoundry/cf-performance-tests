@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"os"
 	"testing"
 	"time"
 
@@ -85,6 +86,11 @@ func TestIsolationSegments(t *testing.T) {
 	err = viper.Unmarshal(&testConfig)
 	if err != nil {
 		t.Fatalf("error parsing config: %s", err.Error())
+	}
+
+	err = os.MkdirAll("../../test-results/isolation-segments-test-results/v1/", os.ModePerm)
+	if err != nil {
+		t.Fatalf("Cannot create Directory: %s", err.Error())
 	}
 
 	timestamp := time.Now().Unix()
