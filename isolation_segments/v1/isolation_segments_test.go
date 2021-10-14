@@ -26,7 +26,7 @@ var _ = Describe("isolation segments", func() {
 
 		Measure(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize))
+				helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize))
 			})
 		}, testConfig.Samples)
 	})
