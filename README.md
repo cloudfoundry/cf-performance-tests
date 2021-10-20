@@ -13,6 +13,10 @@ These tests are not intended to:
 * Load test the Cloud Controller
 * Assist with scaling decisions of CAPI deployments
 
+## Test automation
+The tests in the main branch are running regularly on a public concourse, which can be found [here](https://bosh.ci.cloudfoundry.org/).
+The repo containing the concourse pipeline for bootstrapping of the CF foundation and running the tests, can be found [here](https://github.com/cloudfoundry-incubator/cf-performance-tests-pipeline). The test results and generated charts can be found there as well.
+
 ## Running tests
 Tests in this repository are written using [Ginkgo](https://onsi.github.io/ginkgo/) using the [Measure](https://pkg.go.dev/github.com/onsi/ginkgo#Measure) spec definition to time API calls across multiple attempts, tracking the minimum, maximum durations as well as the standard deviation.
 
@@ -46,3 +50,10 @@ Then run:
 ```bash
 ginkgo -r
 ```
+
+## Contributing
+The goal of the tests is to have long term comparable results.
+Therefore, after creating a test suite, the test should never be changed again. Otherwise, the results will differ because of differences in the test setup and not because of changes in the codebase of the Cloud Contoller.
+If changes to the test are necessary a new version of the test suite must be created.
+
+Before changing the implementation of an endpoint in the Cloud Controller with the goal of improving its performance, a test should be created, to be able to see the performance change in the tests.
