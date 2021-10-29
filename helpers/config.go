@@ -2,6 +2,9 @@ package helpers
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
+	"os"
+	"testing"
 	"time"
 )
 
@@ -31,6 +34,7 @@ type Config struct {
 	Users               Users
 	CcdbConnection      string `mapstructure:"ccdb_connection"`
 	UaadbConnection     string `mapstructure:"uaadb_connection"`
+	ResultsFolder       string `mapstructure:"results_folder"`
 }
 
 func NewConfig() Config {
@@ -70,3 +74,29 @@ func (config Config) GetApiEndpoint() string {
 func (config Config) GetSkipSSLValidation() bool                     { return config.SkipSslValidation }
 func (config Config) GetNamePrefix() string                          { return "perf" }
 func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t }
+func (config Config) GetResultsFolder() string { return config.ResultsFolder }
+
+func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName string) *JsonReporter {
+	viper.SetConfigName("config")
+	viper.AddConfigPath("../../")
+	viper.AddConfigPath("$HOME/.cf-performance-tests")
+	viper.SetDefault("results_folder", "../../test-results")
+	err := viper.ReadInConfig()
+	if err != nil {
+		t.Fatalf("error loading config: %s", err.Error())
+	}
+
+	err = viper.Unmarshal(testConfig)
+	if err != nil {
+		t.Fatalf("error parsing config: %s", err.Error())
+	}
+
+	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
+	err = os.MkdirAll(resultsFolder, os.ModePerm)
+	if err != nil {
+		t.Fatalf("Cannot create Directory: %s", err.Error())
+	}
+
+	timestamp := time.Now().Unix()
+	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+}

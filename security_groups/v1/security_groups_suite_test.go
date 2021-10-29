@@ -4,17 +4,12 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
-	"testing"
-	"time"
-
+	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/spf13/viper"
-
-	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
+	"log"
+	"testing"
 )
 
 var testConfig = helpers.NewConfig()
@@ -81,27 +76,6 @@ var _ = AfterSuite(func() {
 })
 
 func TestSecurityGroups(t *testing.T) {
-	viper.SetConfigName("config")
-	viper.AddConfigPath("../../")
-	viper.AddConfigPath("$HOME/.cf-performance-tests")
-	err := viper.ReadInConfig()
-	if err != nil {
-		t.Fatalf("error loading config: %s", err.Error())
-	}
-
-	err = viper.Unmarshal(&testConfig)
-	if err != nil {
-		t.Fatalf("error parsing config: %s", err.Error())
-	}
-
-	err = os.MkdirAll("../../test-results/security-groups-test-results/v1/", os.ModePerm)
-	if err != nil {
-		t.Fatalf("Cannot create Directory: %s", err.Error())
-	}
-
-	timestamp := time.Now().Unix()
-	jsonReporter := helpers.NewJsonReporter(fmt.Sprintf("../../test-results/security-groups-test-results/v1/security-groups-test-results-%d.json", timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
-
 	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "SecurityGroupsTest Suite", []Reporter{jsonReporter})
+	RunSpecsWithDefaultAndCustomReporters(t, "SecurityGroupsTest Suite", []Reporter{helpers.ConfigureJsonReporter(t, &testConfig, "security-groups")})
 }
