@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 )
 
 var _ = Describe("domains", func() {
