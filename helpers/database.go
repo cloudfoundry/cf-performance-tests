@@ -49,6 +49,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_bindings USING apps WHERE apps.guid = service_bindings.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM route_mappings USING apps WHERE apps.guid = route_mappings.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM apps WHERE name LIKE '%s'",
+		"DELETE FROM service_keys WHERE name LIKE '%s'",
 		"DELETE FROM service_bindings USING service_instances WHERE service_instances.guid = service_bindings.service_instance_guid AND service_instances.name LIKE '%s'",
 		"DELETE FROM service_instances WHERE name LIKE '%s'",
 		"DELETE FROM security_groups_spaces USING security_groups WHERE security_groups_spaces.security_group_id = security_groups.id AND security_groups.name LIKE '%s'",
@@ -63,6 +64,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM organizations_managers USING organizations WHERE organizations_managers.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_isolation_segments USING organizations WHERE organizations_isolation_segments.organization_guid = organizations.guid AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
+		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
 		"DELETE FROM isolation_segment_annotations USING isolation_segments WHERE isolation_segment_annotations.resource_guid = isolation_segments.guid AND isolation_segments.name LIKE '%s'",
 		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
 		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
@@ -115,14 +117,14 @@ func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string) i
 	return lastInsertId
 }
 
-func ExecuteSelectStatement(db *sql.DB, ctx context.Context, statement string) []string {
+func ExecuteSelectStatement(db *sql.DB, ctx context.Context, statement string) []interface{} {
 	rows, err := db.QueryContext(ctx, statement)
 	checkError(err)
 	defer rows.Close()
-	results := make([]string, 0)
+	results := make([]interface{}, 0)
 
 	for rows.Next() {
-		var result string
+		var result interface{}
 		if err := rows.Scan(&result); err != nil {
 			// Check for a scan error.
 			// Query rows will be closed with defer.

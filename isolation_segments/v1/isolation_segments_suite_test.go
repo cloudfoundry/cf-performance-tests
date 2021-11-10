@@ -4,12 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
+	"log"
+	"testing"
+
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"log"
-	"testing"
+
+	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 )
 
 var testConfig = helpers.NewConfig()

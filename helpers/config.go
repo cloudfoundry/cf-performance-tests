@@ -2,10 +2,11 @@ package helpers
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 type User struct {
@@ -74,7 +75,7 @@ func (config Config) GetApiEndpoint() string {
 func (config Config) GetSkipSSLValidation() bool                     { return config.SkipSslValidation }
 func (config Config) GetNamePrefix() string                          { return "perf" }
 func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t }
-func (config Config) GetResultsFolder() string { return config.ResultsFolder }
+func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
 
 func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName string) *JsonReporter {
 	viper.SetConfigName("config")
