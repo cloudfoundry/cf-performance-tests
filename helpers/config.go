@@ -59,7 +59,7 @@ func (config Config) GetUseExistingUser() bool {
 }
 func (config Config) GetExistingUser() string             { return config.Users.Existing.Username }
 func (config Config) GetExistingUserPassword() string     { return config.Users.Existing.Password }
-func (config Config) GetShouldKeepUser() bool             { return false }
+func (config Config) GetShouldKeepUser() bool             { return true }
 func (config Config) GetConfigurableTestPassword() string { return "" }
 func (config Config) GetAdminClient() string              { return config.Users.Admin.Client }
 func (config Config) GetAdminClientSecret() string        { return config.Users.Admin.ClientSecret }
