@@ -36,14 +36,14 @@ var _ = Describe("service plans", func() {
 
 
 	Describe("GET /v3/service_plans/:guid", func() {
+		var servicePlanGUID string
 		Context("as admin", func() {
-			var servicePlanGUID string
 			BeforeEach(func() {
 				servicePlanGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/service_plans")
 				Expect(servicePlanGUIDs).NotTo(BeNil())
 				servicePlanGUID = servicePlanGUIDs[rand.Intn(len(servicePlanGUIDs))]
 			})
-			Measure("list one", func(b Benchmarker) {
+			Measure("show one", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
 				})
@@ -51,11 +51,10 @@ var _ = Describe("service plans", func() {
 
 		})
 		Context("as regular user", func() {
-			servicePlanGUID := ""
 			BeforeEach(func() {
 				servicePlanGUID = getRandomLimitedServicePlanGuid()
 			})
-			Measure("list one", func(b Benchmarker) {
+			Measure("show one", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
 					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
 				})
@@ -64,7 +63,7 @@ var _ = Describe("service plans", func() {
 	})
 
 	Describe("GET /v3/service_plans/:guid/visibility", func() {
-		servicePlanGUID := ""
+		var servicePlanGUID string
 		BeforeEach(func() {
 			servicePlanGUID = getRandomLimitedServicePlanGuid()
 		})
@@ -121,12 +120,8 @@ var _ = Describe("service plans", func() {
 })
 
 func getRandomLimitedServicePlanGuid() string {
-	servicePlanGUID := ""
 	servicePlanGUIDs := helpers.ExecuteSelectStatement(ccdb, ctx,
 		"SELECT guid FROM service_plans WHERE id IN (SELECT service_plan_id FROM service_plan_visibilities ORDER BY random() LIMIT 1)")
-	for _, guid := range servicePlanGUIDs {
-		servicePlanGUID = guid.(string)
-	}
-	return servicePlanGUID
+	return servicePlanGUIDs[0].(string)
 }
 
