@@ -33,7 +33,7 @@ var _ = Describe("security groups", func() {
 		}, testConfig.Samples)
 
 		Measure(fmt.Sprintf("as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func(b Benchmarker) {
-			spaceGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/spaces?per_page=%d", testConfig.LargeElementsFilter))
+			spaceGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/spaces?per_page=%d&label_selector=%s", testConfig.LargeElementsFilter, testConfig.TestResourcePrefix))
 			Expect(spaceGUIDs).NotTo(BeNil())
 			Expect(len(spaceGUIDs)).To(Equal(testConfig.LargeElementsFilter))
 			spaceGUIDs = helpers.Shuffle(spaceGUIDs)
