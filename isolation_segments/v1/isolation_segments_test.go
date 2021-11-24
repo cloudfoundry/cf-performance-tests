@@ -69,7 +69,7 @@ var _ = Describe("isolation segments", func() {
 
 			Measure("PATCH /v3/isolation_segments/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					data := fmt.Sprintf(`{"name":"perf-updated-isolation-segment-%s"}`, isolationSegmentGUID)
+					data := fmt.Sprintf(`{"name":"%s-updated-isolation-segment-%s"}`, testConfig.GetNamePrefix(), isolationSegmentGUID)
 					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 				})
 			}, testConfig.Samples)
