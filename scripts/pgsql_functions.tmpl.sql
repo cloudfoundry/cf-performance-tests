@@ -32,6 +32,7 @@ BEGIN
         FOR _ IN 1..num_spaces_per_org LOOP
             space_guid := gen_random_uuid();
             INSERT INTO spaces (guid, name, organization_id) VALUES (space_guid, space_name_prefix || space_guid, org_id);
+            INSERT INTO space_labels (guid, key_name, resource_guid) VALUES (space_guid, '{{.Prefix}}', space_guid);
         END LOOP;
     END LOOP;
 END;
