@@ -5,7 +5,7 @@ CREATE OR REPLACE FUNCTION create_orgs(
 $$
 DECLARE
     org_guid text;
-    org_name_prefix text := 'perf-org-';
+    org_name_prefix text := '{{.Prefix}}-org-';
     default_quota_definition_id int := 1;
 BEGIN
     FOR _ IN 1..num_orgs LOOP
@@ -24,9 +24,9 @@ CREATE OR REPLACE FUNCTION create_spaces(
 $$
 DECLARE
     org_id int;
-    org_name_query text := 'perf-org-%';
+    org_name_query text := '{{.Prefix}}-org-%';
     space_guid text;
-    space_name_prefix text := 'perf-space-';
+    space_name_prefix text := '{{.Prefix}}-space-';
 BEGIN
     FOR org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query) LOOP
         FOR _ IN 1..num_spaces_per_org LOOP
@@ -46,7 +46,7 @@ CREATE OR REPLACE FUNCTION create_security_groups(
 $$
 DECLARE
     security_group_guid text;
-    security_group_name_prefix text := 'perf-security-group-';
+    security_group_name_prefix text := '{{.Prefix}}-security-group-';
     security_rule text := '[
         {
             "protocol": "icmp",
@@ -80,9 +80,9 @@ CREATE OR REPLACE FUNCTION assign_security_groups_to_spaces(
 $$
 DECLARE
     v_space_id int;
-    space_name_query text := 'perf-space-%';
+    space_name_query text := '{{.Prefix}}-space-%';
     v_security_group_id int;
-    security_group_name_query text := 'perf-security-group-%';
+    security_group_name_query text := '{{.Prefix}}-security-group-%';
 BEGIN
     FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT num_spaces) LOOP
         FOR v_security_group_id IN (SELECT id FROM security_groups WHERE name LIKE security_group_name_query ORDER BY random() LIMIT num_security_groups_per_space) LOOP
@@ -103,7 +103,7 @@ $$
 DECLARE
     v_user_id int;
     v_space_id int;
-    space_name_query text := 'perf-space-%';
+    space_name_query text := '{{.Prefix}}-space-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
     FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT num_spaces) LOOP
@@ -121,7 +121,7 @@ CREATE OR REPLACE FUNCTION create_shared_domains(
 $$
 DECLARE
     shared_domain_guid text;
-    shared_domain_name_prefix text := 'perf-shared-domain-';
+    shared_domain_name_prefix text := '{{.Prefix}}-shared-domain-';
 BEGIN
     FOR _ IN 1..num_shared_domains LOOP
         shared_domain_guid := gen_random_uuid();
@@ -139,10 +139,10 @@ CREATE OR REPLACE FUNCTION create_private_domains(
 $$
 DECLARE
     org_id int;
-    org_name_query text := 'perf-org-%';
+    org_name_query text := '{{.Prefix}}-org-%';
     num_created_private_domains int := 0;
     private_domain_guid text;
-    private_domain_name_prefix text := 'perf-private-domain-';
+    private_domain_name_prefix text := '{{.Prefix}}-private-domain-';
 BEGIN
     LOOP
         FOR org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random()) LOOP
@@ -168,7 +168,7 @@ $$
 DECLARE
     v_user_id int;
     org_id int;
-    org_name_query text := 'perf-org-%';
+    org_name_query text := '{{.Prefix}}-org-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
     FOR org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT num_orgs) LOOP
@@ -186,7 +186,7 @@ CREATE OR REPLACE FUNCTION create_isolation_segments(
 $$
 DECLARE
     isolation_segment_guid text;
-    isolation_segment_name_prefix text := 'perf-isolation-segment-';
+    isolation_segment_name_prefix text := '{{.Prefix}}-isolation-segment-';
 BEGIN
     FOR _ IN 1..num_isolation_segments LOOP
         isolation_segment_guid := gen_random_uuid();
@@ -204,8 +204,8 @@ CREATE OR REPLACE FUNCTION assign_orgs_to_isolation_segments(
 $$
 DECLARE
     org_guid text;
-    org_name_query text := 'perf-org-%';
-    isolation_segment_name_query text := 'perf-isolation-segment-%';
+    org_name_query text := '{{.Prefix}}-org-%';
+    isolation_segment_name_query text := '{{.Prefix}}-isolation-segment-%';
     v_isolation_segment_guid text;
 BEGIN
     FOR org_guid IN (SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT num_orgs) LOOP
@@ -226,7 +226,7 @@ CREATE OR REPLACE FUNCTION create_service_instances(
 $$
 DECLARE
     service_instance_guid text;
-    service_instance_name_prefix text := 'perf-service-instance-';
+    service_instance_name_prefix text := '{{.Prefix}}-service-instance-';
 BEGIN
     FOR _ IN 1..num_service_instances LOOP
         service_instance_guid := gen_random_uuid();
@@ -246,7 +246,7 @@ $$
 DECLARE
     v_service_instance_id int;
     service_key_guid text;
-    service_key_name_prefix text := 'perf-service-key-';
+    service_key_name_prefix text := '{{.Prefix}}-service-key-';
 BEGIN
     FOR v_service_instance_id IN (SELECT id FROM service_instances WHERE space_id = p_space_id) LOOP
         FOR _ IN 1..num_service_keys_per_service_instance LOOP
@@ -270,12 +270,12 @@ CREATE OR REPLACE FUNCTION create_services_and_plans(
 $$
 DECLARE
     service_guid TEXT;
-    service_label_prefix TEXT := 'perf-service-';
-    service_description_prefix TEXT := 'perf-service-description-';
+    service_label_prefix TEXT := '{{.Prefix}}-service-';
+    service_description_prefix TEXT := '{{.Prefix}}-service-description-';
     service_bindable BOOLEAN := true;
     service_plan_guid TEXT;
-    service_plan_name_prefix TEXT := 'perf-service-plan';
-    service_plan_description_prefix TEXT := 'perf-service-plan-description-';
+    service_plan_name_prefix TEXT := '{{.Prefix}}-service-plan';
+    service_plan_description_prefix TEXT := '{{.Prefix}}-service-plan-description-';
     service_plan_free BOOLEAN := true;
     latest_service_id INTEGER;
     latest_service_plan_id INTEGER;

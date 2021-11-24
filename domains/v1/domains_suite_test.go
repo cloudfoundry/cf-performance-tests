@@ -33,7 +33,7 @@ var _ = BeforeSuite(func() {
 	testSetup = workflowhelpers.NewTestSuiteSetup(&testConfig)
 	testSetup.Setup()
 	ccdb, uaadb, ctx = helpers.OpenDbConnections(testConfig)
-	helpers.ImportStoredProcedures(ccdb, ctx)
+	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
 
 	// create orgs
 	createOrgStatement := fmt.Sprintf("SELECT FROM create_orgs(%d)", orgs)

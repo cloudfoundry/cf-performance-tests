@@ -25,7 +25,7 @@ var _ = Describe("service keys", func() {
 
 				Measure("POST /v3/service_credential_bindings", func(b Benchmarker) {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						serviceKeyName := fmt.Sprintf("perf-service-key-%s", uuid.NewString())
+						serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
 						data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
 						exitCode, body := helpers.TimeCFCurlReturning(b, testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
 						Expect(exitCode).To(Equal(22))
@@ -44,7 +44,7 @@ var _ = Describe("service keys", func() {
 
 				Measure("POST /v3/service_credential_bindings", func(b Benchmarker) {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						serviceKeyName := fmt.Sprintf("perf-service-key-%s", uuid.NewString())
+						serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
 						data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
 						exitCode, body := helpers.TimeCFCurlReturning(b, testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
 						Expect(exitCode).To(Equal(0))

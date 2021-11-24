@@ -17,7 +17,6 @@ import (
 )
 
 var testConfig = helpers.NewConfig()
-var prefix = testConfig.GetNamePrefix()
 var testSetup *workflowhelpers.ReproducibleTestSuiteSetup
 var ccdb *sql.DB
 var uaadb *sql.DB
@@ -40,9 +39,9 @@ var _ = BeforeSuite(func() {
 
 	fmt.Printf("%v Starting to seed database with testdata...\n", time.Now().Format(time.RFC850))
 
-	helpers.ImportStoredProcedures(ccdb, ctx)
+	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
 
-	serviceBrokerId := createServiceBroker()
+	serviceBrokerId := createServiceBroker(testConfig.GetNamePrefix())
 
 	createOrgStatement := fmt.Sprintf("SELECT FROM create_orgs(%d)", orgs)
 	helpers.ExecuteStatement(ccdb, ctx, createOrgStatement)
@@ -89,7 +88,7 @@ func TestServicePlans(t *testing.T) {
 	RunSpecsWithDefaultAndCustomReporters(t, "ServicePlansTest Suite", []Reporter{helpers.ConfigureJsonReporter(t, &testConfig, "service-plans")})
 }
 
-func createServiceBroker() int {
+func createServiceBroker(prefix string) int {
 	serviceBrokerGuid := uuid.NewString()
 	serviceBrokerName := fmt.Sprintf("%s-service-broker-%s", prefix, serviceBrokerGuid)
 	brokerUrl := fmt.Sprintf("https://bommel-%s.bommel.sap.hana.ondemand.com", serviceBrokerName)

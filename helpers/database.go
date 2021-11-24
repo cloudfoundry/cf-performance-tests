@@ -1,6 +1,7 @@
 package helpers
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"log"
 	"path"
 	"runtime"
+	"text/template"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -27,17 +29,32 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 	return
 }
 
-func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context) {
+func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	type StoredProceduresSQLTemplate struct {
+		Prefix string
+	}
 	_, filename, _, ok := runtime.Caller(0)
 	if !ok {
 		log.Fatal("Failed to retrieve current file location")
 	}
 
-	content, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.sql"))
+	pgsqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	ExecuteStatement(ccdb, ctx, string(content))
+
+	tmpl, err := template.New("pgsql_functions").Parse(string(pgsqlFunctionsTemplate))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	pgsqlFunctionsTemplateResult := new(bytes.Buffer)
+	err = tmpl.Execute(pgsqlFunctionsTemplateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ExecuteStatement(ccdb, ctx, pgsqlFunctionsTemplateResult.String())
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {

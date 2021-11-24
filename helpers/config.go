@@ -36,6 +36,7 @@ type Config struct {
 	CcdbConnection      string `mapstructure:"ccdb_connection"`
 	UaadbConnection     string `mapstructure:"uaadb_connection"`
 	ResultsFolder       string `mapstructure:"results_folder"`
+	TestResourcePrefix  string `mapstructure:"test_resource_prefix"`
 }
 
 func NewConfig() Config {
@@ -73,7 +74,7 @@ func (config Config) GetApiEndpoint() string {
 	}
 }
 func (config Config) GetSkipSSLValidation() bool                     { return config.SkipSslValidation }
-func (config Config) GetNamePrefix() string                          { return "perf" }
+func (config Config) GetNamePrefix() string                          { return config.TestResourcePrefix }
 func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t }
 func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
 
@@ -82,6 +83,7 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 	viper.AddConfigPath("../../")
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
 	viper.SetDefault("results_folder", "../../test-results")
+	viper.SetDefault("test_resource_prefix", "perf")
 	err := viper.ReadInConfig()
 	if err != nil {
 		t.Fatalf("error loading config: %s", err.Error())

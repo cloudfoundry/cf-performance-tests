@@ -60,7 +60,7 @@ var _ = Describe("security groups", func() {
 
 			Measure("PATCH /v3/security_groups/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					data := fmt.Sprintf(`{"name":"perf-updated-security-group-%s"}`, securityGroupGUID)
+					data := fmt.Sprintf(`{"name":"%s-updated-security-group-%s"}`, testConfig.GetNamePrefix(), securityGroupGUID)
 					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 				})
 			}, testConfig.Samples)
