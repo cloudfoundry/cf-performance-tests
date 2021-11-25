@@ -75,6 +75,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM spaces_developers USING spaces WHERE spaces_developers.space_id = spaces.id AND spaces.name LIKE '%s'",
 		"DELETE FROM spaces_managers USING spaces WHERE spaces_managers.space_id = spaces.id AND spaces.name LIKE '%s'",
 		"DELETE FROM spaces_auditors USING spaces WHERE spaces_auditors.space_id = spaces.id AND spaces.name LIKE '%s'",
+		"DELETE FROM space_labels USING spaces WHERE space_labels.resource_guid = spaces.guid AND spaces.name LIKE '%s'",
 		"DELETE FROM spaces WHERE name LIKE '%s'",
 		"DELETE FROM service_plan_visibilities USING organizations WHERE service_plan_visibilities.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_users USING organizations WHERE organizations_users.organization_id = organizations.id AND organizations.name LIKE '%s'",
