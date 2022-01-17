@@ -98,6 +98,13 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 	}
 
+	// Some entries have accidentally been created without a prefix. Remove them again...
+	ExecuteStatement(ccdb, ctx, "DELETE FROM spaces WHERE name LIKE '-space-%'")
+	ExecuteStatement(ccdb, ctx, "DELETE FROM organizations WHERE name LIKE '-org-%'")
+	ExecuteStatement(ccdb, ctx, "DELETE FROM quota_definitions WHERE name LIKE '-quota-definition-%'")
+	ExecuteStatement(ccdb, ctx, "DELETE FROM service_plans WHERE name LIKE '-service-plan-%'")
+	ExecuteStatement(ccdb, ctx, "DELETE FROM services WHERE label LIKE '-service-%'")
+
 	if uaadb != nil {
 		userGuids := ExecuteSelectStatement(uaadb, ctx, fmt.Sprintf("SELECT id FROM users WHERE username LIKE '%s'", nameQuery))
 
