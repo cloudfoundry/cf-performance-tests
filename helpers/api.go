@@ -86,8 +86,8 @@ func GetTotalResults(user workflowhelpers.UserContext, testConfig Config, endpoi
 }
 
 func GetXRuntimeHeader(response []byte) float64 {
-	regexp := regexp.MustCompile(`X-Runtime: (\d+.?\d+)`)
-	matches := regexp.FindSubmatch(response)
+	exp := regexp.MustCompile(`X-Runtime: (\d+.?\d+)`)
+	matches := exp.FindSubmatch(response)
 	ExpectWithOffset(1, matches).ToNot(BeEmpty(), "Response did not contain X-Runtime header")
 
 	runtime, err := strconv.ParseFloat(string(matches[1]), 64)
