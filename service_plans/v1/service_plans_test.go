@@ -5,10 +5,11 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+
+	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
 )
 
 var _ = Describe("service plans", func() {
@@ -33,7 +34,6 @@ var _ = Describe("service plans", func() {
 			}, testConfig.Samples)
 		})
 	})
-
 
 	Describe("GET /v3/service_plans/:guid", func() {
 		var servicePlanGUID string
@@ -124,4 +124,3 @@ func getRandomLimitedServicePlanGuid() string {
 		"SELECT guid FROM service_plans WHERE id IN (SELECT service_plan_id FROM service_plan_visibilities ORDER BY random() LIMIT 1)")
 	return servicePlanGUIDs[0].(string)
 }
-

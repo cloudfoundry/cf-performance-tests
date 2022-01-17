@@ -16,7 +16,7 @@ import (
 )
 
 var testConfig = helpers.NewConfig()
-var prefix = testConfig.GetNamePrefix()
+var prefix string
 var testSetup *workflowhelpers.ReproducibleTestSuiteSetup
 var ccdb *sql.DB
 var uaadb *sql.DB
@@ -36,6 +36,7 @@ var _ = BeforeSuite(func() {
 
 	testSetup = workflowhelpers.NewTestSuiteSetup(&testConfig)
 	testSetup.Setup()
+	prefix = testConfig.GetNamePrefix()
 	ccdb, uaadb, ctx = helpers.OpenDbConnections(testConfig)
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
 

@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/google/uuid"
 	"log"
 	"testing"
 	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
@@ -23,12 +24,12 @@ var uaadb *sql.DB
 var ctx context.Context
 
 const (
-	orgs = 10000
-	serviceOfferings = 300
-	servicePlansPublic = 10
+	orgs                           = 10000
+	serviceOfferings               = 300
+	servicePlansPublic             = 10
 	servicePlansPrivateWithoutOrgs = 10
-	servicePlansPrivateWithOrgs = 10
-	orgsPerLimitedServicePlan = 200
+	servicePlansPrivateWithOrgs    = 10
+	orgsPerLimitedServicePlan      = 200
 )
 
 var _ = BeforeSuite(func() {
@@ -59,7 +60,7 @@ var _ = BeforeSuite(func() {
 	helpers.ExecuteStatement(ccdb, ctx, createPrivateServicePlansWithOrgsStatement)
 
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
-	orgsAssignedToRegularUser := orgs/2
+	orgsAssignedToRegularUser := orgs / 2
 	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
 	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
 
@@ -91,10 +92,8 @@ func TestServicePlans(t *testing.T) {
 func createServiceBroker(prefix string) int {
 	serviceBrokerGuid := uuid.NewString()
 	serviceBrokerName := fmt.Sprintf("%s-service-broker-%s", prefix, serviceBrokerGuid)
-	brokerUrl := fmt.Sprintf("https://bommel-%s.bommel.sap.hana.ondemand.com", serviceBrokerName)
-	authPassword := "bXlfc3VwZXJfZHVwZXJfbWVoZ2FfcGFzc3dvcmQK"
 	createServiceBrokerStatement := fmt.Sprintf(
-		"INSERT INTO service_brokers (guid, name, broker_url, auth_password) VALUES ('%s', '%s', '%s', '%s') RETURNING id",
-		serviceBrokerGuid, serviceBrokerName, brokerUrl, authPassword)
+		"INSERT INTO service_brokers (guid, name, broker_url, auth_password) VALUES ('%s', '%s', '', '') RETURNING id",
+		serviceBrokerGuid, serviceBrokerName)
 	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceBrokerStatement)
 }
