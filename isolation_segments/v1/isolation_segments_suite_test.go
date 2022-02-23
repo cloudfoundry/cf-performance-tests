@@ -11,7 +11,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/cloudfoundry-incubator/cf-performance-tests/helpers"
+	"github.com/cloudfoundry/cf-performance-tests/helpers"
 )
 
 var testConfig = helpers.NewConfig()

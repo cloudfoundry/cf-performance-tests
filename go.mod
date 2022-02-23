@@ -1,4 +1,4 @@
-module github.com/cloudfoundry-incubator/cf-performance-tests
+module github.com/cloudfoundry/cf-performance-tests
 
 go 1.15
 

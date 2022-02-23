@@ -15,7 +15,7 @@ These tests are not intended to:
 
 ## Test automation
 The tests in the main branch are running regularly on a public concourse, which can be found [here](https://bosh.ci.cloudfoundry.org/).
-The repo containing the concourse pipeline for bootstrapping of the CF foundation and running the tests, can be found [here](https://github.com/cloudfoundry-incubator/cf-performance-tests-pipeline). The test results and generated charts can be found there as well.
+The repo containing the concourse pipeline for bootstrapping of the CF foundation and running the tests, can be found [here](https://github.com/cloudfoundry/cf-performance-tests-pipeline). The test results and generated charts can be found there as well.
 
 ## Running tests
 Tests in this repository are written using [Ginkgo](https://onsi.github.io/ginkgo/) using the [Measure](https://pkg.go.dev/github.com/onsi/ginkgo#Measure) spec definition to time API calls across multiple attempts, tracking the minimum, maximum durations as well as the standard deviation.
