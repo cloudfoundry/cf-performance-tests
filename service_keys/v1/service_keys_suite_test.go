@@ -7,7 +7,7 @@ import (
 	"log"
 	"testing"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
+	"github.com/cloudfoundry/cf-test-helpers/workflowhelpers"
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

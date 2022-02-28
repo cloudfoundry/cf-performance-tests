@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
+	"github.com/cloudfoundry/cf-test-helpers/workflowhelpers"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
