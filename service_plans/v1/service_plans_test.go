@@ -117,6 +117,48 @@ var _ = Describe("service plans", func() {
 			}, testConfig.Samples)
 		})
 	})
+
+	Describe("GET /v3/service_plans?service_instance_guids=", func() {
+		var serviceInstanceGuidsList []string
+		BeforeEach(func() {
+			serviceInstanceGuidsList = nil
+			serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx,
+				"SELECT guid FROM service_instances ORDER BY random() LIMIT 50")
+			for _, guid := range serviceInstanceGuids {
+				serviceInstanceGuidsList = append(serviceInstanceGuidsList, guid.(string))
+			}
+		})
+		Context("as admin", func() {
+			Measure("filter for list of service_instances", func(b Benchmarker) {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
+						"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+				})
+			}, testConfig.Samples)
+			Measure(fmt.Sprintf("filter for list of service_instances with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
+						"/v3/service_plans?service_instance_guids=%v&per_page=%d",
+						strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+				})
+			}, testConfig.Samples)
+		})
+		Context("as regular user", func() {
+			Measure("filter for list of service_instances", func(b Benchmarker) {
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
+						"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+				})
+			}, testConfig.Samples)
+			Measure(fmt.Sprintf("filter for list of service_instances with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
+						"/v3/service_plans?service_instance_guids=%v&per_page=%d",
+						strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+				})
+			}, testConfig.Samples)
+		})
+	})
 })
 
 func getRandomLimitedServicePlanGuid() string {
