@@ -26,10 +26,11 @@ var ctx context.Context
 const (
 	orgs                           = 10000
 	serviceOfferings               = 300
-	servicePlansPublic             = 10
-	servicePlansPrivateWithoutOrgs = 10
-	servicePlansPrivateWithOrgs    = 10
-	orgsPerLimitedServicePlan      = 200
+	servicePlansPublic             = 10  // results in 300 services with 10 service plans each (3k total)
+	servicePlansPrivateWithoutOrgs = 10  // results in 300 services with 10 service plans each (3k total)
+	servicePlansPrivateWithOrgs    = 10  // results in 300 services with 10 service plans each (3k total)
+	orgsPerLimitedServicePlan      = 200 // used in `servicePlansPrivateWithOrgs`, results in 600k (3k * 200) service_plan_visibilities
+	serviceInstances               = 500
 )
 
 var _ = BeforeSuite(func() {
@@ -63,6 +64,14 @@ var _ = BeforeSuite(func() {
 	orgsAssignedToRegularUser := orgs / 2
 	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
 	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
+
+	// create service instances incl dependent resources
+	createSpacesStatement := fmt.Sprintf("SELECT FROM create_spaces(%d)", 1)
+	helpers.ExecuteStatement(ccdb, ctx, createSpacesStatement)
+	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM spaces ORDER BY random() LIMIT 1")
+	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM service_plans ORDER BY random() LIMIT 1")
+	createServiceInstancesStatement := fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
+	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
 
 	fmt.Printf("%v Finished seeding database.\n", time.Now().Format(time.RFC850))
 })
