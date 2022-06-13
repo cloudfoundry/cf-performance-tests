@@ -73,6 +73,7 @@ var _ = BeforeSuite(func() {
 	createServiceInstancesStatement := fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
 	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
 
+	helpers.AnalyzeDB(ccdb, ctx)
 	fmt.Printf("%v Finished seeding database.\n", time.Now().Format(time.RFC850))
 })
 

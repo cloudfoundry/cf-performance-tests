@@ -59,6 +59,8 @@ var _ = BeforeSuite(func() {
 	spacesAssignedToRegularUser := spaces
 	assignUserAsSpaceDeveloper := fmt.Sprintf("SELECT FROM assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
 	helpers.ExecuteStatement(ccdb, ctx, assignUserAsSpaceDeveloper)
+
+	helpers.AnalyzeDB(ccdb, ctx)
 })
 
 var _ = AfterSuite(func() {

@@ -68,6 +68,8 @@ var _ = BeforeSuite(func() {
 
 	createServiceKeysStatement = fmt.Sprintf("SELECT FROM create_service_keys_for_service_instances(%d, %d)", spaceWithExhaustedServiceKeysId, serviceKeysPerServiceInstance)
 	helpers.ExecuteStatement(ccdb, ctx, createServiceKeysStatement)
+
+	helpers.AnalyzeDB(ccdb, ctx)
 })
 
 func createService() int {

@@ -10,6 +10,7 @@ import (
 	"path"
 	"runtime"
 	"text/template"
+	"time"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -97,6 +98,8 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 	for _, statement := range deleteStatements {
 		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 	}
+	fmt.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
+	ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 
 	if uaadb != nil {
 		userGuids := ExecuteSelectStatement(uaadb, ctx, fmt.Sprintf("SELECT id FROM users WHERE username LIKE '%s'", nameQuery))
@@ -107,6 +110,11 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 
 		ExecuteStatement(uaadb, ctx, fmt.Sprintf("DELETE FROM users WHERE username LIKE '%s'", nameQuery))
 	}
+}
+
+func AnalyzeDB(ccdb *sql.DB, ctx context.Context) {
+	fmt.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
+	ExecuteStatement(ccdb, ctx, "ANALYZE;")
 }
 
 func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {
