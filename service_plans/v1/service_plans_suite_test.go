@@ -60,18 +60,23 @@ var _ = BeforeSuite(func() {
 		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan)
 	helpers.ExecuteStatement(ccdb, ctx, createPrivateServicePlansWithOrgsStatement)
 
+	// create service instances incl dependent resources
+	spacesPerOrg := 1
+	createSpacesStatement := fmt.Sprintf("SELECT FROM create_spaces(%d)", spacesPerOrg)
+	helpers.ExecuteStatement(ccdb, ctx, createSpacesStatement)
+	selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 1", testConfig.GetNamePrefix())
+	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
+	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM service_plans ORDER BY random() LIMIT 1")
+	createServiceInstancesStatement := fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
+	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
+
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs / 2
 	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
 	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
-
-	// create service instances incl dependent resources
-	createSpacesStatement := fmt.Sprintf("SELECT FROM create_spaces(%d)", 1)
-	helpers.ExecuteStatement(ccdb, ctx, createSpacesStatement)
-	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM spaces ORDER BY random() LIMIT 1")
-	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM service_plans ORDER BY random() LIMIT 1")
-	createServiceInstancesStatement := fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
-	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
+	spacesAssignedToRegularUser := orgs * spacesPerOrg / 2
+	assignUserAsSpaceDeveloper := fmt.Sprintf("SELECT FROM assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
+	helpers.ExecuteStatement(ccdb, ctx, assignUserAsSpaceDeveloper)
 
 	helpers.AnalyzeDB(ccdb, ctx)
 	fmt.Printf("%v Finished seeding database.\n", time.Now().Format(time.RFC850))
