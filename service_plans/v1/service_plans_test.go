@@ -159,6 +159,33 @@ var _ = Describe("service plans", func() {
 			}, testConfig.Samples)
 		})
 	})
+
+	Describe("GET /v3/service_plans?organization_guids=&space_guids=", func() {
+		var orgGuidsList []string
+		var spaceGuidsList []string
+		BeforeEach(func() {
+			orgGuidsList = nil
+			selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
+			orgGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgGuidsStatement)
+			for _, guid := range orgGuids {
+				orgGuidsList = append(orgGuidsList, guid.(string))
+			}
+			spaceGuidsList = nil
+			selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
+			spaceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectSpaceGuidsStatement)
+			for _, guid := range spaceGuids {
+				spaceGuidsList = append(spaceGuidsList, guid.(string))
+			}
+		})
+		Context("as regular user", func() {
+			Measure("filter by org and space guids", func(b Benchmarker) {
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
+						"/v3/service_plans?organization_guids=%v&space_guids=%v", strings.Join(orgGuidsList[:], ","), strings.Join(spaceGuidsList[:], ",")))
+				})
+			}, testConfig.Samples)
+		})
+	})
 })
 
 func getRandomLimitedServicePlanGuid() string {
