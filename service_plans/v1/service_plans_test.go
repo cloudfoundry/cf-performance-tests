@@ -145,14 +145,14 @@ var _ = Describe("service plans", func() {
 		})
 		Context("as regular user", func() {
 			Measure("filter for list of service_instances", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
 						"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
 				})
 			}, testConfig.Samples)
 			Measure(fmt.Sprintf("filter for list of service_instances with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
+					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
 						"/v3/service_plans?service_instance_guids=%v&per_page=%d",
 						strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
 				})
