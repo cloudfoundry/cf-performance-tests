@@ -44,8 +44,8 @@ func NewConfig() Config {
 		LargePageSize:       500,
 		LargeElementsFilter: 100,
 		Samples:             5,
-		BasicTimeout:        30 * time.Second,
-		LongTimeout:         120 * time.Second,
+		BasicTimeout:        60 * time.Second,
+		LongTimeout:         180 * time.Second,
 	}
 }
 
