@@ -32,8 +32,8 @@ capi_version: "<used for generated report>"
 large_page_size: 500  (the default value)
 large_elements_filter: 100  (the default value)
 samples: 5  (the default value)
-basictimeout: 30  (the default value)
-longtimeout: 120  (the default value)
+basictimeout: 60  (the default value)
+longtimeout: 180  (the default value)
 users:
   admin:
     username: "<admin username>"
