@@ -31,6 +31,10 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 }
 
 func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	if testConfig.Database == mysql_db {
+		log.Print("MySQL is not yet implemented...")
+		return
+	}
 	type StoredProceduresSQLTemplate struct {
 		Prefix string
 	}
