@@ -140,6 +140,19 @@ func AnalyzeDB(ccdb *sql.DB, ctx context.Context) {
 	ExecuteStatement(ccdb, ctx, "ANALYZE;")
 }
 
+func ExecuteStoredProcedure(testConfig Config, db *sql.DB, ctx context.Context, statement string) {
+	sqlCmd := ""
+	switch testConfig.DatabaseType {
+	case psql_db:
+		sqlCmd = "SELECT FROM "
+	case mysql_db:
+		sqlCmd = "CALL "
+	default:
+		log.Fatalf("Invalid 'database_type' parameter: %s", testConfig.DatabaseType)
+	}
+	ExecuteStatement(db, ctx, sqlCmd+statement)
+}
+
 func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {
 	result, err := db.ExecContext(ctx, statement)
 	checkError(err)

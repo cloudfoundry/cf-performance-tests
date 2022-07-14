@@ -36,22 +36,22 @@ var _ = BeforeSuite(func() {
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
 
 	// create orgs
-	createOrgStatement := fmt.Sprintf("SELECT FROM create_orgs(%d)", orgs)
-	helpers.ExecuteStatement(ccdb, ctx, createOrgStatement)
+	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
+	helpers.ExecuteStoredProcedure(testConfig, ccdb, ctx, createOrgStatement)
 
 	// create shared domains
-	createSharedDomainsStatement := fmt.Sprintf("SELECT FROM create_shared_domains(%d)", sharedDomains)
-	helpers.ExecuteStatement(ccdb, ctx, createSharedDomainsStatement)
+	createSharedDomainsStatement := fmt.Sprintf("create_shared_domains(%d)", sharedDomains)
+	helpers.ExecuteStoredProcedure(testConfig, ccdb, ctx, createSharedDomainsStatement)
 
 	// create private domains; evenly assigned to random orgs
-	createPrivateDomainsStatement := fmt.Sprintf("SELECT FROM create_private_domains(%d)", privateDomains)
-	helpers.ExecuteStatement(ccdb, ctx, createPrivateDomainsStatement)
+	createPrivateDomainsStatement := fmt.Sprintf("create_private_domains(%d)", privateDomains)
+	helpers.ExecuteStoredProcedure(testConfig, ccdb, ctx, createPrivateDomainsStatement)
 
 	// assign the regular user to all orgs
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs
-	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
-	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
+	helpers.ExecuteStoredProcedure(testConfig, ccdb, ctx, assignUserAsOrgManager)
 
 	helpers.AnalyzeDB(ccdb, ctx)
 })
