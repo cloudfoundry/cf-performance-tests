@@ -100,7 +100,7 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 	}
 
 	if testConfig.Database != psql_db && testConfig.Database != mysql_db {
-		t.Fatalf("'database' parameter must be one of '#{psql_db}' or '#{mysql_db}'")
+		t.Fatalf("'database' parameter must be one of '%s' or '%s'", psql_db, mysql_db)
 	}
 
 	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)

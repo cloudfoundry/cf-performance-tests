@@ -14,14 +14,26 @@ import (
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
-	ccdb, err := sql.Open("pgx", testConfig.CcdbConnection)
+	driverName := ""
+	switch testConfig.Database {
+	case psql_db:
+		driverName = "pgx"
+	case mysql_db:
+		driverName = "mysql"
+	default:
+		log.Fatalf("Invalid 'database' parameter: %s", testConfig.Database)
+	}
+
+	ccdb, err := sql.Open(driverName, testConfig.CcdbConnection)
 	checkError(err)
 
 	if testConfig.UaadbConnection != "" {
-		uaadb, err = sql.Open("pgx", testConfig.UaadbConnection)
+		uaadb, err = sql.Open(driverName, testConfig.UaadbConnection)
 		checkError(err)
 	}
 
