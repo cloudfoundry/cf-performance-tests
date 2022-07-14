@@ -19,15 +19,15 @@ import (
 )
 
 func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
-	log.Printf("opening db connection to %s", testConfig.Database)
+	log.Printf("opening db connection to %s", testConfig.DatabaseType)
 	driverName := ""
-	switch testConfig.Database {
+	switch testConfig.DatabaseType {
 	case psql_db:
 		driverName = "pgx"
 	case mysql_db:
 		driverName = "mysql"
 	default:
-		log.Fatalf("Invalid 'database' parameter: %s", testConfig.Database)
+		log.Fatalf("Invalid 'database_type' parameter: %s", testConfig.DatabaseType)
 	}
 
 	ccdb, err := sql.Open(driverName, testConfig.CcdbConnection)
@@ -44,7 +44,7 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 }
 
 func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
-	if testConfig.Database == mysql_db {
+	if testConfig.DatabaseType == mysql_db {
 		log.Print("MySQL is not yet implemented...")
 		return
 	}
