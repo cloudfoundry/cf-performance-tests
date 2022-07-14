@@ -1,6 +1,5 @@
 DELIMITER $$
 
--- note: the DROP statement produces a "warning" in the mysql console if the procedure does not exist
 DROP PROCEDURE IF EXISTS create_orgs$$
 CREATE PROCEDURE create_orgs (num_orgs INT)
 BEGIN
