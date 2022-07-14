@@ -44,10 +44,6 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 }
 
 func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
-	if testConfig.DatabaseType == mysql_db {
-		log.Print("MySQL is not yet implemented...")
-		return
-	}
 	type StoredProceduresSQLTemplate struct {
 		Prefix string
 	}
@@ -56,23 +52,33 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 		log.Fatal("Failed to retrieve current file location")
 	}
 
-	pgsqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
+	sqlFile := ""
+	switch testConfig.DatabaseType {
+	case psql_db:
+		sqlFile = "../scripts/pgsql_functions.tmpl.sql"
+	case mysql_db:
+		sqlFile = "../scripts/mysql_functions.tmpl.sql"
+	default:
+		log.Fatalf("Invalid 'database_type' parameter: %s", testConfig.DatabaseType)
+	}
+
+	sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), sqlFile))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tmpl, err := template.New("pgsql_functions").Parse(string(pgsqlFunctionsTemplate))
+	tmpl, err := template.New("sql_functions").Parse(string(sqlFunctionsTemplate))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	pgsqlFunctionsTemplateResult := new(bytes.Buffer)
-	err = tmpl.Execute(pgsqlFunctionsTemplateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
+	sqlFunctionsTemplateResult := new(bytes.Buffer)
+	err = tmpl.Execute(sqlFunctionsTemplateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ExecuteStatement(ccdb, ctx, pgsqlFunctionsTemplateResult.String())
+	ExecuteStatement(ccdb, ctx, sqlFunctionsTemplateResult.String())
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
