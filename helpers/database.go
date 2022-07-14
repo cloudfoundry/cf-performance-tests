@@ -19,6 +19,7 @@ import (
 )
 
 func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
+	log.Printf("opening db connection to %s", testConfig.Database)
 	driverName := ""
 	switch testConfig.Database {
 	case psql_db:
