@@ -75,7 +75,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 	}
 
 	if testConfig.DatabaseType == mysql_db {
-		for _, storedProcedure := range StoredProcedures {
+		for _, storedProcedure := range StoredProceduresMySql {
 			log.Printf("Initialising stored procedure %s...", storedProcedure[0])
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s;", storedProcedure[0]))
 			ExecuteStatement(ccdb, ctx, evaluateTemplate(storedProcedure[1], testConfig))
@@ -170,7 +170,7 @@ func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
 	}
 }
 
-func ExecuteStoredProcedure(testConfig Config, db *sql.DB, ctx context.Context, statement string) {
+func ExecuteStoredProcedure(db *sql.DB, ctx context.Context, statement string, testConfig Config) {
 	sqlCmd := ""
 	switch testConfig.DatabaseType {
 	case psql_db:

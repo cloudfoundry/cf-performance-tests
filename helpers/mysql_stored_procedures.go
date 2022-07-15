@@ -1,6 +1,9 @@
 package helpers
 
-var StoredProcedures = [][]string{
+// we can't use a single .sql file for storing all MySQL procedures because the DELIMITER keyword cannot be used
+// (DELIMITER is a feature of the "mysql" client, but is not supported in other APIs)
+
+var StoredProceduresMySql = [][]string{
 	{
 		"create_orgs", `
 CREATE PROCEDURE create_orgs (num_orgs INT)
@@ -44,8 +47,8 @@ CREATE PROCEDURE create_private_domains(num_private_domains INT)
 BEGIN
     DECLARE org_id INT;
     DECLARE num_created_private_domains INT;
-    DECLARE private_domain_guid TEXT;
-    DECLARE private_domain_name_prefix TEXT;
+    DECLARE private_domain_guid VARCHAR(255);
+    DECLARE private_domain_name_prefix VARCHAR(255);;
     DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE '{{.Prefix}}-org-%' ORDER BY RAND();
     -- when we've iterated over all orgs, re-open the cursor so that we get a new batch of random org ids
     DECLARE CONTINUE HANDLER FOR NOT FOUND
@@ -78,7 +81,7 @@ BEGIN
     DECLARE v_user_id INT;
     DECLARE num_assigned_orgs INT;
     DECLARE org_id INT;
-    DECLARE org_name_query TEXT;
+    DECLARE org_name_query VARCHAR(255);
     DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY RAND() LIMIT num_orgs;
     SET num_assigned_orgs = 0;
     SET org_name_query = '{{.Prefix}}-org-%';
@@ -97,4 +100,40 @@ BEGIN
 END;
 `,
 	},
+	{"create_isolation_segments", `
+CREATE PROCEDURE create_isolation_segments(num_isolation_segments INT)
+BEGIN
+    DECLARE isolation_segment_guid VARCHAR(255);
+	DECLARE	isolation_segment_name_prefix VARCHAR(255);
+    SET isolation_segment_name_prefix = '{{.Prefix}}-isolation-segment-';
+    DECLARE counter INT;
+    SET counter = 0;
+
+    WHILE counter < num_isolation_segments DO
+        SET counter = counter + 1;
+        SET isolation_segment_guid = uuid();
+        INSERT INTO isolation_segments (guid, name)
+            VALUES (isolation_segment_guid, CONCAT(isolation_segment_name_prefix, isolation_segment_guid));
+    END WHILE;
+END;
+`}, {"assign_orgs_to_isolation_segments", `
+CREATE PROCEDURE assign_orgs_to_isolation_segments(num_orgs INT)
+BEGIN
+    DECLARE org_guid VARCHAR(255);
+    DECLARE org_name_query VARCHAR(255);
+    DECLARE isolation_segment_name_query VARCHAR(255);
+    DECLARE v_isolation_segment_guid VARCHAR(255);
+    DECLARE orgs_cursor CURSOR FOR SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY RAND() LIMIT num_orgs;
+    SET org_name_query = '{{.Prefix}}-org-%';
+    SET isolation_segment_name_query = '{{.Prefix}}-isolation-segment-%';
+
+    OPEN orgs_cursor;
+    org_loop: LOOP
+        SELECT guid FROM isolation_segments WHERE name LIKE isolation_segment_name_query ORDER BY RAND() LIMIT 1 INTO v_isolation_segment_guid;
+        INSERT INTO organizations_isolation_segments (organization_guid, isolation_segment_guid)
+            VALUES (org_guid, v_isolation_segment_guid);
+    END LOOP;
+    CLOSE orgs_cursor;
+END;
+`},
 }
