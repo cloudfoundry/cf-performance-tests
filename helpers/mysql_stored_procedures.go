@@ -48,7 +48,7 @@ BEGIN
     DECLARE org_id INT;
     DECLARE num_created_private_domains INT;
     DECLARE private_domain_guid VARCHAR(255);
-    DECLARE private_domain_name_prefix VARCHAR(255);;
+    DECLARE private_domain_name_prefix VARCHAR(255);
     DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE '{{.Prefix}}-org-%' ORDER BY RAND();
     -- when we've iterated over all orgs, re-open the cursor so that we get a new batch of random org ids
     DECLARE CONTINUE HANDLER FOR NOT FOUND
