@@ -109,6 +109,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
 	deleteStatementsMySql := []string{
+		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
 		"DELETE FROM domains WHERE name LIKE '%s'",
 		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
@@ -158,8 +159,6 @@ func ExecuteStoredProcedure(testConfig Config, db *sql.DB, ctx context.Context, 
 		sqlCmd = "SELECT FROM "
 	case mysql_db:
 		sqlCmd = "CALL "
-	default:
-		log.Fatalf("Invalid 'database_type' parameter: %s", testConfig.DatabaseType)
 	}
 	ExecuteStatement(db, ctx, sqlCmd+statement)
 }
