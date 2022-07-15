@@ -54,7 +54,7 @@ var _ = BeforeSuite(func() {
 	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
 	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
 
-	helpers.AnalyzeDB(ccdb, ctx)
+	helpers.AnalyzeDB(ccdb, ctx, testConfig)
 })
 
 var _ = AfterSuite(func() {

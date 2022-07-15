@@ -78,7 +78,7 @@ var _ = BeforeSuite(func() {
 	assignUserAsSpaceDeveloper := fmt.Sprintf("SELECT FROM assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
 	helpers.ExecuteStatement(ccdb, ctx, assignUserAsSpaceDeveloper)
 
-	helpers.AnalyzeDB(ccdb, ctx)
+	helpers.AnalyzeDB(ccdb, ctx, testConfig)
 	fmt.Printf("%v Finished seeding database.\n", time.Now().Format(time.RFC850))
 })
 

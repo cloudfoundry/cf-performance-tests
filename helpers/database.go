@@ -19,15 +19,13 @@ import (
 )
 
 func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
-	log.Printf("opening db connection to %s", testConfig.DatabaseType)
+	log.Printf("Opening database connection to %s", testConfig.DatabaseType)
 	driverName := ""
 	switch testConfig.DatabaseType {
 	case psql_db:
 		driverName = "pgx"
 	case mysql_db:
 		driverName = "mysql"
-	default:
-		log.Fatalf("Invalid 'database_type' parameter: %s", testConfig.DatabaseType)
 	}
 
 	ccdb, err := sql.Open(driverName, testConfig.CcdbConnection)
@@ -39,7 +37,6 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 	}
 
 	ctx = context.Background()
-
 	return
 }
 
@@ -116,8 +113,11 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 	for _, statement := range deleteStatements {
 		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 	}
-	fmt.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
-	ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
+
+	if testConfig.DatabaseType == psql_db {
+		log.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
+		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
+	}
 
 	if uaadb != nil {
 		userGuids := ExecuteSelectStatement(uaadb, ctx, fmt.Sprintf("SELECT id FROM users WHERE username LIKE '%s'", nameQuery))
@@ -130,9 +130,14 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 	}
 }
 
-func AnalyzeDB(ccdb *sql.DB, ctx context.Context) {
-	fmt.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
-	ExecuteStatement(ccdb, ctx, "ANALYZE;")
+func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	if testConfig.DatabaseType == psql_db {
+		log.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
+		ExecuteStatement(ccdb, ctx, "ANALYZE;")
+	}
+	if testConfig.DatabaseType == psql_db {
+		log.Printf("Skipping 'ANALYZE' for MySQL.")
+	}
 }
 
 func ExecuteStoredProcedure(testConfig Config, db *sql.DB, ctx context.Context, statement string) {
