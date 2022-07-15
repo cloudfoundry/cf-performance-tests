@@ -1,14 +1,5 @@
 package helpers
 
-import (
-	"bytes"
-	"context"
-	"database/sql"
-	"fmt"
-	"log"
-	"text/template"
-)
-
 var StoredProcedures = [][]string{
 	{
 		"create_orgs", `
@@ -106,28 +97,4 @@ BEGIN
 END;
 `,
 	},
-}
-
-func InitializeMySql(ccdb *sql.DB, ctx context.Context, testConfig Config) {
-	type StoredProceduresSQLTemplate struct {
-		Prefix string
-	}
-
-	for _, storedProcedure := range StoredProcedures {
-		log.Printf("Initialising stored procedure %s...", storedProcedure[0])
-
-		tmpl, err := template.New("sql_functions").Parse(storedProcedure[1])
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		sqlFunctionsTemplateResult := new(bytes.Buffer)
-		err = tmpl.Execute(sqlFunctionsTemplateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s;", storedProcedure[0]))
-		ExecuteStatement(ccdb, ctx, sqlFunctionsTemplateResult.String())
-	}
 }

@@ -40,37 +40,47 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 	return
 }
 
-func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
-	if testConfig.DatabaseType == mysql_db {
-		InitializeMySql(ccdb, ctx, testConfig)
-		return
-	}
-
+func evaluateTemplate(templ string, testConfig Config) string {
 	type StoredProceduresSQLTemplate struct {
 		Prefix string
 	}
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		log.Fatal("Failed to retrieve current file location")
-	}
 
-	sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
+	tmpl, err := template.New("sql_functions").Parse(templ)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tmpl, err := template.New("sql_functions").Parse(string(sqlFunctionsTemplate))
+	templateResult := new(bytes.Buffer)
+	err = tmpl.Execute(templateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	sqlFunctionsTemplateResult := new(bytes.Buffer)
-	err = tmpl.Execute(sqlFunctionsTemplateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
-	if err != nil {
-		log.Fatal(err)
+	return templateResult.String()
+}
+
+func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	if testConfig.DatabaseType == psql_db {
+		_, filename, _, ok := runtime.Caller(0)
+		if !ok {
+			log.Fatal("Failed to retrieve current file location")
+		}
+
+		sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlFunctionsTemplate), testConfig))
 	}
 
-	ExecuteStatement(ccdb, ctx, sqlFunctionsTemplateResult.String())
+	if testConfig.DatabaseType == mysql_db {
+		for _, storedProcedure := range StoredProcedures {
+			log.Printf("Initialising stored procedure %s...", storedProcedure[0])
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s;", storedProcedure[0]))
+			ExecuteStatement(ccdb, ctx, evaluateTemplate(storedProcedure[1], testConfig))
+		}
+	}
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
