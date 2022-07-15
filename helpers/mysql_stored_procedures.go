@@ -114,7 +114,7 @@ func InitializeMySql(ccdb *sql.DB, ctx context.Context, testConfig Config) {
 	}
 
 	for _, storedProcedure := range StoredProcedures {
-		log.Printf("Initialising stored procedure %s ...", storedProcedure[0])
+		log.Printf("Initialising stored procedure %s...", storedProcedure[0])
 
 		tmpl, err := template.New("sql_functions").Parse(storedProcedure[1])
 		if err != nil {

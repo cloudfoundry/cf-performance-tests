@@ -19,7 +19,7 @@ import (
 )
 
 func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
-	log.Printf("Opening database connection to %s", testConfig.DatabaseType)
+	log.Printf("Opening database connection to %s...", testConfig.DatabaseType)
 	driverName := ""
 	switch testConfig.DatabaseType {
 	case psql_db:
@@ -74,7 +74,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
-	deleteStatements := []string{
+	deleteStatementsPostgres := []string{
 		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
 		"DELETE FROM routes WHERE host LIKE '%s'",
 		"DELETE FROM domain_annotations USING domains WHERE domain_annotations.resource_guid = domains.guid AND domains.name LIKE '%s'",
@@ -108,15 +108,26 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM services WHERE label LIKE '%s'",
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
+	deleteStatementsMySql := []string{
+		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM organizations WHERE name LIKE '%s'",
+	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
 
-	for _, statement := range deleteStatements {
-		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
-	}
-
 	if testConfig.DatabaseType == psql_db {
+		for _, statement := range deleteStatementsPostgres {
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
+		}
+
 		log.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
 		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
+	}
+
+	if testConfig.DatabaseType == mysql_db {
+		for _, statement := range deleteStatementsMySql {
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
+		}
 	}
 
 	if uaadb != nil {
