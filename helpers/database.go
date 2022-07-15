@@ -109,10 +109,16 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
 	deleteStatementsMySql := []string{
+		"DELETE FROM s_d USING spaces_developers s_d, spaces s WHERE s_d.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM s_m USING spaces_managers s_m, spaces s WHERE s_m.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM s_a USING spaces_auditors s_a, spaces s WHERE s_a.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM s_l USING space_labels s_l, spaces s WHERE s_l.resource_guid = s.guid AND s.name LIKE '%s'",
 		"DELETE FROM spaces WHERE name LIKE '%s'",
 		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
 		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM o_u USING organizations_users o_u, organizations o WHERE o_u.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM o_i_s USING organizations_isolation_segments o_i_s, organizations o WHERE o_i_s.organization_guid = o.guid AND o.name LIKE '%s'",
 		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
 	}
