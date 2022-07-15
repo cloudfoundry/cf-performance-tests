@@ -44,6 +44,11 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 }
 
 func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	if testConfig.DatabaseType == mysql_db {
+		InitializeMySql(ccdb, ctx, testConfig)
+		return
+	}
+
 	type StoredProceduresSQLTemplate struct {
 		Prefix string
 	}
@@ -52,17 +57,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 		log.Fatal("Failed to retrieve current file location")
 	}
 
-	sqlFile := ""
-	switch testConfig.DatabaseType {
-	case psql_db:
-		sqlFile = "../scripts/pgsql_functions.tmpl.sql"
-	case mysql_db:
-		sqlFile = "../scripts/mysql_functions.tmpl.sql"
-	default:
-		log.Fatalf("Invalid 'database_type' parameter: %s", testConfig.DatabaseType)
-	}
-
-	sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), sqlFile))
+	sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
 	if err != nil {
 		log.Fatal(err)
 	}
