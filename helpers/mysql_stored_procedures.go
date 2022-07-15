@@ -105,8 +105,8 @@ CREATE PROCEDURE create_isolation_segments(num_isolation_segments INT)
 BEGIN
     DECLARE isolation_segment_guid VARCHAR(255);
 	DECLARE	isolation_segment_name_prefix VARCHAR(255);
-    SET isolation_segment_name_prefix = '{{.Prefix}}-isolation-segment-';
     DECLARE counter INT;
+    SET isolation_segment_name_prefix = '{{.Prefix}}-isolation-segment-';
     SET counter = 0;
 
     WHILE counter < num_isolation_segments DO
