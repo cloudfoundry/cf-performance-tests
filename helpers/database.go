@@ -180,6 +180,7 @@ func ExecuteStoredProcedure(db *sql.DB, ctx context.Context, statement string, t
 	}
 	log.Printf("Executing stored procedure: %s", sqlCmd+statement)
 	ExecuteStatement(db, ctx, sqlCmd+statement)
+	log.Printf("Finished stored procedure: %s", sqlCmd+statement)
 }
 
 func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {

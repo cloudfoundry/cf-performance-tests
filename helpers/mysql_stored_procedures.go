@@ -100,7 +100,8 @@ BEGIN
 END;
 `,
 	},
-	{"create_isolation_segments", `
+	{
+		"create_isolation_segments", `
 CREATE PROCEDURE create_isolation_segments(num_isolation_segments INT)
 BEGIN
     DECLARE isolation_segment_guid VARCHAR(255);
@@ -116,7 +117,8 @@ BEGIN
             VALUES (isolation_segment_guid, CONCAT(isolation_segment_name_prefix, isolation_segment_guid));
     END WHILE;
 END;
-`}, {"assign_orgs_to_isolation_segments", `
+`}, {
+		"assign_orgs_to_isolation_segments", `
 CREATE PROCEDURE assign_orgs_to_isolation_segments(num_orgs INT)
 BEGIN
     DECLARE org_guid VARCHAR(255);
