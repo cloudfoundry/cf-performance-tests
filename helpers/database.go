@@ -178,6 +178,7 @@ func ExecuteStoredProcedure(db *sql.DB, ctx context.Context, statement string, t
 	case mysql_db:
 		sqlCmd = "CALL "
 	}
+	log.Printf("Executing stored procedure: %s", sqlCmd+statement)
 	ExecuteStatement(db, ctx, sqlCmd+statement)
 }
 
