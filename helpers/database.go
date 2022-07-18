@@ -119,6 +119,9 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
 	deleteStatementsMySql := []string{
+		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, security_groups s_g WHERE s_g_s.security_group_id = s_g.id AND s_g.name LIKE '%s'",
+		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, spaces s WHERE s_g_s.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM security_groups WHERE name LIKE '%s'",
 		"DELETE FROM s_d USING spaces_developers s_d, spaces s WHERE s_d.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM s_m USING spaces_managers s_m, spaces s WHERE s_m.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM s_a USING spaces_auditors s_a, spaces s WHERE s_a.space_id = s.id AND s.name LIKE '%s'",
