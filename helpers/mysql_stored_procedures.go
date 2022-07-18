@@ -106,7 +106,7 @@ BEGIN
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET spaces_finished = TRUE;
 
     SET space_name_query = '{{.Prefix}}-space-%';
-    SET security_group_name_query text = '{{.Prefix}}-security-group-%';
+    SET security_group_name_query = '{{.Prefix}}-security-group-%';
 
     OPEN spaces_cursor;
     spaces_loop: LOOP
