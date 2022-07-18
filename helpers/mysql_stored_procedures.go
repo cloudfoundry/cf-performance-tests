@@ -137,6 +137,7 @@ BEGIN
         FETCH orgs_cursor INTO org_guid;
         IF finished = 1 THEN 
             LEAVE org_loop;
+        END IF;
         SELECT guid FROM isolation_segments WHERE name LIKE isolation_segment_name_query ORDER BY RAND() LIMIT 1 INTO v_isolation_segment_guid;
         INSERT INTO organizations_isolation_segments (organization_guid, isolation_segment_guid)
             VALUES (org_guid, v_isolation_segment_guid);
