@@ -41,24 +41,24 @@ var _ = BeforeSuite(func() {
 	// create orgs and spaces; as the number of orgs is not relevant for these tests, all spaces are created in a single org
 	orgs := 1
 	spacesPerOrg := spaces / orgs
-	createOrgsStatement := fmt.Sprintf("SELECT FROM create_orgs(%d)", orgs)
-	createSpacesStatement := fmt.Sprintf("SELECT FROM create_spaces(%d)", spacesPerOrg)
-	helpers.ExecuteStatement(ccdb, ctx, createOrgsStatement)
-	helpers.ExecuteStatement(ccdb, ctx, createSpacesStatement)
+	createOrgsStatement := fmt.Sprintf("create_orgs(%d)", orgs)
+	createSpacesStatement := fmt.Sprintf("create_spaces(%d)", spacesPerOrg)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgsStatement, testConfig)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
 
 	// create security groups
-	createSecurityGroupsStatement := fmt.Sprintf("SELECT FROM create_security_groups(%d)", securityGroups)
-	helpers.ExecuteStatement(ccdb, ctx, createSecurityGroupsStatement)
+	createSecurityGroupsStatement := fmt.Sprintf("create_security_groups(%d)", securityGroups)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createSecurityGroupsStatement, testConfig)
 
 	// assign security groups to spaces; n spaces have each m security groups (randomly) assigned (a security group can be assigned to multiple spaces)
-	assignSecurityGroupsToSpacesStatement := fmt.Sprintf("SELECT FROM assign_security_groups_to_spaces(%d, %d)", spacesWithSecurityGroups, securityGroupsPerSpace)
-	helpers.ExecuteStatement(ccdb, ctx, assignSecurityGroupsToSpacesStatement)
+	assignSecurityGroupsToSpacesStatement := fmt.Sprintf("assign_security_groups_to_spaces(%d, %d)", spacesWithSecurityGroups, securityGroupsPerSpace)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignSecurityGroupsToSpacesStatement, testConfig)
 
 	// assign the regular user to all spaces
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	spacesAssignedToRegularUser := spaces
-	assignUserAsSpaceDeveloper := fmt.Sprintf("SELECT FROM assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
-	helpers.ExecuteStatement(ccdb, ctx, assignUserAsSpaceDeveloper)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)
 })

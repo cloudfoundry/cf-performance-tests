@@ -6,7 +6,7 @@ package helpers
 var StoredProceduresMySql = [][]string{
 	{
 		"create_orgs", `
-CREATE PROCEDURE create_orgs (num_orgs INT)
+CREATE PROCEDURE create_orgs(num_orgs INT)
 BEGIN
     DECLARE org_guid VARCHAR(255);
     DECLARE org_name_prefix VARCHAR(255);
@@ -21,6 +21,142 @@ BEGIN
         INSERT INTO organizations (guid, name, quota_definition_id)
             VALUES (org_guid, CONCAT(org_name_prefix, org_guid), default_quota_definition_id);
     END WHILE;
+END;
+`},
+	{
+		"create_spaces", `
+CREATE PROCEDURE create_spaces(num_spaces_per_org INT)
+BEGIN
+    DECLARE org_id INT;
+    DECLARE org_name_query VARCHAR(255);
+    DECLARE space_name_prefix VARCHAR(255);
+    DECLARE space_guid VARCHAR(255);
+    DECLARE counter INT;
+    DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE org_name_query;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    SET org_name_query = '{{.Prefix}}-org-%';
+    SET space_name_prefix = '{{.Prefix}}-space-';
+    SET finished = 0;
+    SET counter = 0;
+
+    OPEN orgs_cursor;
+    org_loop: LOOP
+        FETCH orgs_cursor INTO org_id;
+        IF finished = 1 THEN
+            LEAVE org_loop;
+        END IF;
+        SET counter = 0;
+        WHILE counter < num_spaces_per_org DO
+            SET counter = counter + 1;
+            SET space_guid = uuid();
+            INSERT INTO spaces (guid, name, organization_id)
+                VALUES (space_guid, CONCAT(space_name_prefix, space_guid), org_id);
+            INSERT INTO space_labels (guid, key_name, resource_guid)
+                VALUES (space_guid, '{{.Prefix}}', space_guid);
+        END WHILE;
+    END LOOP;
+    CLOSE orgs_cursor;
+END;
+`,
+	},
+	{
+		"create_security_groups", `
+CREATE PROCEDURE create_security_groups(security_groups INT)
+BEGIN
+    DECLARE security_group_guid VARCHAR(255);
+    DECLARE security_group_name_prefix VARCHAR(255);
+    DECLARE security_rule MEDIUMTEXT;
+    DECLARE counter INT;
+    SET security_group_name_prefix = '{{.Prefix}}-security-group-';
+    SET security_rule = '[
+        {
+            "protocol": "icmp",
+            "destination": "0.0.0.0/0",
+            "type": 0,
+            "code": 0
+        },
+        {
+            "protocol": "tcp",
+            "destination": "10.0.11.0/24",
+            "ports": "80,443",
+            "log": true,
+            "description": "Allow http and https traffic to ZoneA"
+        }
+    ]';
+    SET counter = 0;
+    WHILE counter < security_groups DO
+        SET counter = counter + 1;
+        SET security_group_guid = uuid();
+        INSERT INTO security_groups (guid, name, rules)
+            VALUES (security_group_guid, CONCAT(security_group_name_prefix, security_group_guid), security_rule);
+    END WHILE;
+END;
+`,
+	},
+	{
+		"assign_security_groups_to_spaces", `
+CREATE PROCEDURE assign_security_groups_to_spaces(num_spaces INT, num_security_groups_per_space INT)
+BEGIN
+    DECLARE v_space_id INT;
+    DECLARE space_name_query VARCHAR(255);
+    DECLARE v_security_group_id int;
+    DECLARE security_group_name_query VARCHAR(255);
+    DECLARE spaces_finished, security_groups_finished BOOLEAN DEFAULT FALSE;
+    DECLARE spaces_cursor CURSOR FOR SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY RAND() LIMIT num_spaces;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET spaces_finished = TRUE;
+
+    SET space_name_query = '{{.Prefix}}-space-%';
+    SET security_group_name_query text = '{{.Prefix}}-security-group-%';
+
+    OPEN spaces_cursor;
+    spaces_loop: LOOP
+        FETCH FROM spaces_cursor INTO v_space_id;
+        IF spaces_finished = TRUE THEN
+            LEAVE spaces_loop;
+        END IF;
+
+        innerblock: BEGIN
+        DECLARE security_groups_cursor CURSOR FOR SELECT id FROM security_groups
+            WHERE name LIKE security_group_name_query ORDER BY RAND() LIMIT num_security_groups_per_space;
+        DECLARE CONTINUE HANDLER FOR NOT FOUND SET security_groups_finished = TRUE;
+
+        OPEN security_groups_cursor;
+        security_groups_loop: LOOP
+            FETCH FROM security_groups_cursor INTO v_security_group_id;
+            IF spaces_finished = TRUE THEN
+                LEAVE security_groups_loop;
+            END IF;
+            INSERT INTO security_groups_spaces (security_group_id, space_id) VALUES (v_security_group_id, v_space_id);
+        END LOOP;
+        CLOSE security_groups_cursor;
+        END innerblock;
+    END LOOP;
+    CLOSE spaces_cursor;
+END;
+`,
+	},
+	{
+		"assign_user_as_space_developer", `
+CREATE PROCEDURE assign_user_as_space_developer(user_guid VARCHAR(255), num_spaces INT)
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE v_space_id INT;
+    DECLARE space_name_query VARCHAR(255);
+    DECLARE finished BOOLEAN DEFAULT FALSE;
+    DECLARE spaces_cursor CURSOR FOR SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY RAND() LIMIT num_spaces;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
+    SET space_name_query = '{{.Prefix}}-space-%';
+
+    SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
+    OPEN spaces_cursor;
+    spaces_loop: LOOP
+        FETCH FROM spaces_cursor INTO v_space_id;
+        IF finished = TRUE THEN
+            LEAVE spaces_loop;
+        END IF;
+        INSERT INTO spaces_developers (space_id, user_id) VALUES (v_space_id, v_user_id);
+    END LOOP;
+    CLOSE spaces_cursor;
 END;
 `},
 	{
@@ -135,7 +271,7 @@ BEGIN
     OPEN orgs_cursor;
     org_loop: LOOP
         FETCH orgs_cursor INTO org_guid;
-        IF finished = 1 THEN 
+        IF finished = 1 THEN
             LEAVE org_loop;
         END IF;
         SELECT guid FROM isolation_segments WHERE name LIKE isolation_segment_name_query ORDER BY RAND() LIMIT 1 INTO v_isolation_segment_guid;
