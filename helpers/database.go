@@ -131,6 +131,8 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM o_i_s USING organizations_isolation_segments o_i_s, organizations o WHERE o_i_s.organization_guid = o.guid AND o.name LIKE '%s'",
 		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
+		"DELETE FROM i_s_a USING isolation_segment_annotations i_s_a, isolation_segments i_s WHERE i_s_a.resource_guid = i_s.guid AND i_s.name LIKE '%s'",
+		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
 	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
 
