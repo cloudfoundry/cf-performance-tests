@@ -126,12 +126,17 @@ BEGIN
     DECLARE isolation_segment_name_query VARCHAR(255);
     DECLARE v_isolation_segment_guid VARCHAR(255);
     DECLARE orgs_cursor CURSOR FOR SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY RAND() LIMIT num_orgs;
+    DECLARE finished INT;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
     SET org_name_query = '{{.Prefix}}-org-%';
     SET isolation_segment_name_query = '{{.Prefix}}-isolation-segment-%';
+    SET finished = 0;
 
     OPEN orgs_cursor;
     org_loop: LOOP
         FETCH orgs_cursor INTO org_guid;
+        IF finished = 1 THEN 
+            LEAVE org_loop;
         SELECT guid FROM isolation_segments WHERE name LIKE isolation_segment_name_query ORDER BY RAND() LIMIT 1 INTO v_isolation_segment_guid;
         INSERT INTO organizations_isolation_segments (organization_guid, isolation_segment_guid)
             VALUES (org_guid, v_isolation_segment_guid);
