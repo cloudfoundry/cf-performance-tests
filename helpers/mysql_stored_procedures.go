@@ -32,17 +32,17 @@ BEGIN
     DECLARE space_name_prefix VARCHAR(255);
     DECLARE space_guid VARCHAR(255);
     DECLARE counter INT;
+    DECLARE finished BOOLEAN DEFAULT FALSE;
     DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE org_name_query;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
     SET org_name_query = '{{.Prefix}}-org-%';
     SET space_name_prefix = '{{.Prefix}}-space-';
-    SET finished = 0;
     SET counter = 0;
 
     OPEN orgs_cursor;
     org_loop: LOOP
         FETCH orgs_cursor INTO org_id;
-        IF finished = 1 THEN
+        IF finished = TRUE THEN
             LEAVE org_loop;
         END IF;
         SET counter = 0;
