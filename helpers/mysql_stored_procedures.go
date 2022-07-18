@@ -99,7 +99,7 @@ CREATE PROCEDURE assign_security_groups_to_spaces(num_spaces INT, num_security_g
 BEGIN
     DECLARE v_space_id INT;
     DECLARE space_name_query VARCHAR(255);
-    DECLARE v_security_group_id int;
+    DECLARE v_security_group_id INT;
     DECLARE security_group_name_query VARCHAR(255);
     DECLARE spaces_finished, security_groups_finished BOOLEAN DEFAULT FALSE;
     DECLARE spaces_cursor CURSOR FOR SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY RAND() LIMIT num_spaces;
@@ -127,10 +127,10 @@ BEGIN
                 LEAVE security_groups_loop;
             END IF;
             INSERT INTO security_groups_spaces (security_group_id, space_id) VALUES (v_security_group_id, v_space_id);
-        END LOOP;
+        END LOOP security_groups_loop;
         CLOSE security_groups_cursor;
         END innerblock;
-    END LOOP;
+    END LOOP spaces_loop;
     CLOSE spaces_cursor;
 END;
 `,
