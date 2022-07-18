@@ -123,7 +123,7 @@ BEGIN
         OPEN security_groups_cursor;
         security_groups_loop: LOOP
             FETCH FROM security_groups_cursor INTO v_security_group_id;
-            IF spaces_finished = TRUE THEN
+            IF security_groups_finished = TRUE THEN
                 LEAVE security_groups_loop;
             END IF;
             INSERT INTO security_groups_spaces (security_group_id, space_id) VALUES (v_security_group_id, v_space_id);
