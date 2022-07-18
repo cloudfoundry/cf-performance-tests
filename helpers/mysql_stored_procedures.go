@@ -125,8 +125,8 @@ BEGIN
     DECLARE org_name_query VARCHAR(255);
     DECLARE isolation_segment_name_query VARCHAR(255);
     DECLARE v_isolation_segment_guid VARCHAR(255);
-    DECLARE orgs_cursor CURSOR FOR SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY RAND() LIMIT num_orgs;
     DECLARE finished INT;
+    DECLARE orgs_cursor CURSOR FOR SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY RAND() LIMIT num_orgs;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
     SET org_name_query = '{{.Prefix}}-org-%';
     SET isolation_segment_name_query = '{{.Prefix}}-isolation-segment-%';
