@@ -111,7 +111,9 @@ BEGIN
     OPEN spaces_cursor;
     spaces_loop: LOOP
         FETCH FROM spaces_cursor INTO v_space_id;
-        IF spaces_finished = TRUE THEN
+insert into logs (msg) values (concat("fetched space id ", v_space_id));
+        IF spaces_finished THEN
+insert into logs (msg) values ("spaces_finished=true, leaving spaces_loop");
             LEAVE spaces_loop;
         END IF;
 
@@ -119,17 +121,19 @@ BEGIN
         DECLARE security_groups_cursor CURSOR FOR SELECT id FROM security_groups
             WHERE name LIKE security_group_name_query ORDER BY RAND() LIMIT num_security_groups_per_space;
         DECLARE CONTINUE HANDLER FOR NOT FOUND SET security_groups_finished = TRUE;
-
+insert into logs (msg) values (concat("fetched space id is now #1: ", v_space_id));
         OPEN security_groups_cursor;
         security_groups_loop: LOOP
             FETCH FROM security_groups_cursor INTO v_security_group_id;
-            IF security_groups_finished = TRUE THEN
+            IF security_groups_finished THEN
                 LEAVE security_groups_loop;
             END IF;
+insert into logs (msg) values (concat("fetched space id is now #6: ", v_space_id));
             INSERT INTO security_groups_spaces (security_group_id, space_id) VALUES (v_security_group_id, v_space_id);
         END LOOP security_groups_loop;
         CLOSE security_groups_cursor;
         END innerblock;
+insert into logs (msg) values ("finished innerblock");
     END LOOP spaces_loop;
     CLOSE spaces_cursor;
 END;
@@ -151,7 +155,7 @@ BEGIN
     OPEN spaces_cursor;
     spaces_loop: LOOP
         FETCH FROM spaces_cursor INTO v_space_id;
-        IF finished = TRUE THEN
+        IF finished THEN
             LEAVE spaces_loop;
         END IF;
         INSERT INTO spaces_developers (space_id, user_id) VALUES (v_space_id, v_user_id);
@@ -261,17 +265,16 @@ BEGIN
     DECLARE org_name_query VARCHAR(255);
     DECLARE isolation_segment_name_query VARCHAR(255);
     DECLARE v_isolation_segment_guid VARCHAR(255);
-    DECLARE finished INT;
+    DECLARE finished BOOLEAN DEFAULT FALSE;
     DECLARE orgs_cursor CURSOR FOR SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY RAND() LIMIT num_orgs;
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
     SET org_name_query = '{{.Prefix}}-org-%';
     SET isolation_segment_name_query = '{{.Prefix}}-isolation-segment-%';
-    SET finished = 0;
 
     OPEN orgs_cursor;
     org_loop: LOOP
         FETCH orgs_cursor INTO org_guid;
-        IF finished = 1 THEN
+        IF finished THEN
             LEAVE org_loop;
         END IF;
         SELECT guid FROM isolation_segments WHERE name LIKE isolation_segment_name_query ORDER BY RAND() LIMIT 1 INTO v_isolation_segment_guid;
