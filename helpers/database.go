@@ -140,6 +140,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 	deleteStatementsMySql := []string{
 		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
 		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM service_keys WHERE name LIKE '%s'",
 		"DELETE FROM s_b USING service_bindings s_b, service_instances s_i WHERE s_i.guid = s_b.service_instance_guid AND s_i.name LIKE '%s'",
 		"DELETE FROM service_instances WHERE name LIKE '%s'",
 		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, security_groups s_g WHERE s_g_s.security_group_id = s_g.id AND s_g.name LIKE '%s'",
