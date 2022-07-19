@@ -19,6 +19,7 @@ BEGIN
         SET service_keys_counter = 0;
         WHILE service_keys_counter < num_service_keys_per_service_instance
             DO
+                SET service_keys_counter = service_keys_counter + 1;
                 SET service_key_guid:= UUID();
                 INSERT INTO service_keys (guid, name, credentials, service_instance_id)
                     VALUES (service_key_guid, CONCAT('{{.Prefix}}-service-key-', service_key_guid), '', service_instance_id);
