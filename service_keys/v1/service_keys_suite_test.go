@@ -56,18 +56,18 @@ var _ = BeforeSuite(func() {
 	spaceWithExhaustedServiceKeysId, spaceWithExhaustedServiceKeysGUID = createSpace(orgWithExhaustedServiceKeysId)
 
 	// create service instances
-	createServiceInstancesStatement := fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceWithUnlimitedServiceKeysId, servicePlanId, serviceInstancesPerSpace)
-	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
+	createServiceInstancesStatement := fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceWithUnlimitedServiceKeysId, servicePlanId, serviceInstancesPerSpace)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 
-	createServiceInstancesStatement = fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceWithExhaustedServiceKeysId, servicePlanId, serviceInstancesPerSpace)
-	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
+	createServiceInstancesStatement = fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceWithExhaustedServiceKeysId, servicePlanId, serviceInstancesPerSpace)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 
 	// create service keys
-	createServiceKeysStatement := fmt.Sprintf("SELECT FROM create_service_keys_for_service_instances(%d, %d)", spaceWithUnlimitedServiceKeysId, serviceKeysPerServiceInstance)
-	helpers.ExecuteStatement(ccdb, ctx, createServiceKeysStatement)
+	createServiceKeysStatement := fmt.Sprintf("create_service_keys_for_service_instances(%d, %d)", spaceWithUnlimitedServiceKeysId, serviceKeysPerServiceInstance)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 
-	createServiceKeysStatement = fmt.Sprintf("SELECT FROM create_service_keys_for_service_instances(%d, %d)", spaceWithExhaustedServiceKeysId, serviceKeysPerServiceInstance)
-	helpers.ExecuteStatement(ccdb, ctx, createServiceKeysStatement)
+	createServiceKeysStatement = fmt.Sprintf("create_service_keys_for_service_instances(%d, %d)", spaceWithExhaustedServiceKeysId, serviceKeysPerServiceInstance)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceKeysStatement, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)
 })
