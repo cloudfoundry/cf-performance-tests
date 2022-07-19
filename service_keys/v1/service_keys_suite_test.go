@@ -64,7 +64,7 @@ var _ = BeforeSuite(func() {
 
 	// create service keys
 	createServiceKeysStatement := fmt.Sprintf("create_service_keys_for_service_instances(%d, %d)", spaceWithUnlimitedServiceKeysId, serviceKeysPerServiceInstance)
-	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceKeysStatement, testConfig)
 
 	createServiceKeysStatement = fmt.Sprintf("create_service_keys_for_service_instances(%d, %d)", spaceWithExhaustedServiceKeysId, serviceKeysPerServiceInstance)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceKeysStatement, testConfig)
