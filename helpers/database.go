@@ -76,14 +76,15 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 	}
 
 	if testConfig.DatabaseType == mysql_db {
-		mysqlDir, err := ioutil.ReadDir(path.Join(path.Dir(currentDir), "../scripts/mysql/"))
+		mysqlDir := path.Join(path.Dir(currentDir), "../scripts/mysql/")
+		mysqlDirFiles, err := ioutil.ReadDir(mysqlDir)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		for _, mysqlFile := range mysqlDir {
+		for _, mysqlFile := range mysqlDirFiles {
 			log.Printf("Reading MySQL stored procedure from file %s...", mysqlFile.Name())
-			sqlTemplate, err := ioutil.ReadFile(path.Join(path.Dir(currentDir), mysqlFile.Name()))
+			sqlTemplate, err := ioutil.ReadFile(path.Join(mysqlDir, mysqlFile.Name()))
 			if err != nil {
 				log.Fatal(err)
 			}
