@@ -89,10 +89,16 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 				log.Fatal(err)
 			}
 			procedureName := strings.Split(mysqlFile.Name(), ".")[0]
-			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s;", procedureName))
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s", procedureName))
 			ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlTemplate), testConfig))
 		}
 	}
+}
+
+// define "random()" function for MySQL to enable re-use of PostgreSQL statements
+func DefineRandomFunction(ccdb *sql.DB, ctx context.Context) {
+	ExecuteStatement(ccdb, ctx, "DROP FUNCTION IF EXISTS random")
+	ExecuteStatement(ccdb, ctx, "CREATE FUNCTION random() RETURNS FLOAT RETURN RAND()")
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
