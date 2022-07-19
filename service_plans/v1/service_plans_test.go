@@ -190,6 +190,6 @@ var _ = Describe("service plans", func() {
 
 func getRandomLimitedServicePlanGuid() string {
 	servicePlanGUIDs := helpers.ExecuteSelectStatement(ccdb, ctx,
-		"SELECT guid FROM service_plans WHERE id IN (SELECT service_plan_id FROM service_plan_visibilities ORDER BY random() LIMIT 1)")
+		"SELECT s_p.guid FROM service_plans s_p INNER JOIN service_plan_visibilities s_p_v ON s_p.id = s_p_v.service_plan_id ORDER BY random() LIMIT 1")
 	return servicePlanGUIDs[0].(string)
 }
