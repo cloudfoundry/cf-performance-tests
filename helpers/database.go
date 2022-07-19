@@ -9,6 +9,7 @@ import (
 	"log"
 	"path"
 	"runtime"
+	"strings"
 	"text/template"
 	"time"
 
@@ -60,13 +61,13 @@ func evaluateTemplate(templ string, testConfig Config) string {
 }
 
 func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
-	if testConfig.DatabaseType == psql_db {
-		_, filename, _, ok := runtime.Caller(0)
-		if !ok {
-			log.Fatal("Failed to retrieve current file location")
-		}
+	_, currentDir, _, ok := runtime.Caller(0)
+	if !ok {
+		log.Fatal("Failed to retrieve current file location")
+	}
 
-		sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
+	if testConfig.DatabaseType == psql_db {
+		sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(currentDir), "../scripts/pgsql_functions.tmpl.sql"))
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -75,10 +76,20 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 	}
 
 	if testConfig.DatabaseType == mysql_db {
-		for _, storedProcedure := range StoredProceduresMySql {
-			log.Printf("Initialising stored procedure %s...", storedProcedure[0])
-			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s;", storedProcedure[0]))
-			ExecuteStatement(ccdb, ctx, evaluateTemplate(storedProcedure[1], testConfig))
+		mysqlDir, err := ioutil.ReadDir(path.Join(path.Dir(currentDir), "../scripts/mysql/"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for _, mysqlFile := range mysqlDir {
+			log.Printf("Reading MySQL stored procedure from file %s...", mysqlFile.Name())
+			sqlTemplate, err := ioutil.ReadFile(mysqlFile.Name())
+			if err != nil {
+				log.Fatal(err)
+			}
+			procedureName := strings.Split(mysqlFile.Name(), ".")[0]
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s;", procedureName))
+			ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlTemplate), testConfig))
 		}
 	}
 }
