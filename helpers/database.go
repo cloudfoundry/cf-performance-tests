@@ -89,6 +89,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 				log.Fatal(err)
 			}
 			procedureName := strings.Split(mysqlFile.Name(), ".")[0]
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP FUNCTION IF EXISTS %s", procedureName))
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s", procedureName))
 			ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlTemplate), testConfig))
 		}
@@ -137,6 +138,10 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
 	deleteStatementsMySql := []string{
+		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
+		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM s_b USING service_bindings s_b, service_instances s_i WHERE s_i.guid = s_b.service_instance_guid AND s_i.name LIKE '%s'",
+		"DELETE FROM service_instances WHERE name LIKE '%s'",
 		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, security_groups s_g WHERE s_g_s.security_group_id = s_g.id AND s_g.name LIKE '%s'",
 		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, spaces s WHERE s_g_s.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM security_groups WHERE name LIKE '%s'",
@@ -145,14 +150,17 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM s_a USING spaces_auditors s_a, spaces s WHERE s_a.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM s_l USING space_labels s_l, spaces s WHERE s_l.resource_guid = s.guid AND s.name LIKE '%s'",
 		"DELETE FROM spaces WHERE name LIKE '%s'",
-		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
-		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM s_p_v USING service_plan_visibilities s_p_v, organizations o WHERE s_p_v.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_u USING organizations_users o_u, organizations o WHERE o_u.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_i_s USING organizations_isolation_segments o_i_s, organizations o WHERE o_i_s.organization_guid = o.guid AND o.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
 		"DELETE FROM i_s_a USING isolation_segment_annotations i_s_a, isolation_segments i_s WHERE i_s_a.resource_guid = i_s.guid AND i_s.name LIKE '%s'",
 		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
+		"DELETE FROM s_p_v USING service_plan_visibilities s_p_v, service_plans s_p WHERE s_p.id = s_p_v.service_plan_id AND s_p.name LIKE '%s'",
+		"DELETE FROM service_plans WHERE name LIKE '%s'",
+		"DELETE FROM services WHERE label LIKE '%s'",
+		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
 
