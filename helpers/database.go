@@ -281,6 +281,17 @@ func ExecuteSelectStatementOneRow(db *sql.DB, ctx context.Context, statement str
 	return result
 }
 
+func ConvertToString(input interface{}) string {
+	if result, ok := input.(string); ok {
+		return result
+	}
+	if result, ok := input.([]uint8); ok {
+		return string(result)
+	}
+	log.Fatalf("Cannot convert input '%v' to string (type is '%T')", input, input)
+	return ""
+}
+
 func checkError(err error) {
 	if err != nil {
 		log.Fatal(err)

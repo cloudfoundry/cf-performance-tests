@@ -90,7 +90,7 @@ var _ = Describe("service plans", func() {
 			serviceOfferingGuids := helpers.ExecuteSelectStatement(ccdb, ctx,
 				"SELECT guid FROM services ORDER BY random() LIMIT 50")
 			for _, guid := range serviceOfferingGuids {
-				serviceOfferingGuidsList = append(serviceOfferingGuidsList, guid.(string))
+				serviceOfferingGuidsList = append(serviceOfferingGuidsList, helpers.ConvertToString(guid))
 			}
 		})
 		Context("as admin", func() {
@@ -125,7 +125,7 @@ var _ = Describe("service plans", func() {
 			serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx,
 				"SELECT guid FROM service_instances ORDER BY random() LIMIT 50")
 			for _, guid := range serviceInstanceGuids {
-				serviceInstanceGuidsList = append(serviceInstanceGuidsList, guid.(string))
+				serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
 			}
 		})
 		Context("as admin", func() {
@@ -168,13 +168,13 @@ var _ = Describe("service plans", func() {
 			selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
 			orgGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgGuidsStatement)
 			for _, guid := range orgGuids {
-				orgGuidsList = append(orgGuidsList, guid.(string))
+				orgGuidsList = append(orgGuidsList, helpers.ConvertToString(guid))
 			}
 			spaceGuidsList = nil
 			selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
 			spaceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectSpaceGuidsStatement)
 			for _, guid := range spaceGuids {
-				spaceGuidsList = append(spaceGuidsList, guid.(string))
+				spaceGuidsList = append(spaceGuidsList, helpers.ConvertToString(guid))
 			}
 		})
 		Context("as regular user", func() {
@@ -191,5 +191,5 @@ var _ = Describe("service plans", func() {
 func getRandomLimitedServicePlanGuid() string {
 	servicePlanGUIDs := helpers.ExecuteSelectStatement(ccdb, ctx,
 		"SELECT s_p.guid FROM service_plans s_p INNER JOIN service_plan_visibilities s_p_v ON s_p.id = s_p_v.service_plan_id ORDER BY random() LIMIT 1")
-	return servicePlanGUIDs[0].(string)
+	return helpers.ConvertToString(servicePlanGUIDs[0])
 }
