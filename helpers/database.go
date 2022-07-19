@@ -23,9 +23,9 @@ func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Cont
 	log.Printf("Opening database connection to %s...", testConfig.DatabaseType)
 	driverName := ""
 	switch testConfig.DatabaseType {
-	case psql_db:
+	case PsqlDb:
 		driverName = "pgx"
-	case mysql_db:
+	case MysqlDb:
 		driverName = "mysql"
 	}
 
@@ -66,7 +66,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 		log.Fatal("Failed to retrieve current file location")
 	}
 
-	if testConfig.DatabaseType == psql_db {
+	if testConfig.DatabaseType == PsqlDb {
 		sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(currentDir), "../scripts/pgsql_functions.tmpl.sql"))
 		if err != nil {
 			log.Fatal(err)
@@ -75,7 +75,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 		ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlFunctionsTemplate), testConfig))
 	}
 
-	if testConfig.DatabaseType == mysql_db {
+	if testConfig.DatabaseType == MysqlDb {
 		mysqlDir := path.Join(path.Dir(currentDir), "../scripts/mysql/")
 		mysqlDirFiles, err := ioutil.ReadDir(mysqlDir)
 		if err != nil {
@@ -83,7 +83,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 		}
 
 		for _, mysqlFile := range mysqlDirFiles {
-			log.Printf("Reading MySQL stored procedure from file %s...", mysqlFile.Name())
+			log.Printf("Reading MySQL stored procedure from file '%s'...", mysqlFile.Name())
 			sqlTemplate, err := ioutil.ReadFile(path.Join(mysqlDir, mysqlFile.Name()))
 			if err != nil {
 				log.Fatal(err)
@@ -144,14 +144,13 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM o_u USING organizations_users o_u, organizations o WHERE o_u.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_i_s USING organizations_isolation_segments o_i_s, organizations o WHERE o_i_s.organization_guid = o.guid AND o.name LIKE '%s'",
-		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
 		"DELETE FROM i_s_a USING isolation_segment_annotations i_s_a, isolation_segments i_s WHERE i_s_a.resource_guid = i_s.guid AND i_s.name LIKE '%s'",
 		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
 	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
 
-	if testConfig.DatabaseType == psql_db {
+	if testConfig.DatabaseType == PsqlDb {
 		for _, statement := range deleteStatementsPostgres {
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 		}
@@ -160,7 +159,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 	}
 
-	if testConfig.DatabaseType == mysql_db {
+	if testConfig.DatabaseType == MysqlDb {
 		for _, statement := range deleteStatementsMySql {
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 		}
@@ -178,11 +177,11 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 }
 
 func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
-	if testConfig.DatabaseType == psql_db {
+	if testConfig.DatabaseType == PsqlDb {
 		log.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
 		ExecuteStatement(ccdb, ctx, "ANALYZE;")
 	}
-	if testConfig.DatabaseType == psql_db {
+	if testConfig.DatabaseType == PsqlDb {
 		log.Printf("Skipping 'ANALYZE' for MySQL.")
 	}
 }
@@ -190,9 +189,9 @@ func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
 func ExecuteStoredProcedure(db *sql.DB, ctx context.Context, statement string, testConfig Config) {
 	sqlCmd := ""
 	switch testConfig.DatabaseType {
-	case psql_db:
+	case PsqlDb:
 		sqlCmd = "SELECT FROM "
-	case mysql_db:
+	case MysqlDb:
 		sqlCmd = "CALL "
 	}
 	log.Printf("Executing stored procedure: %s", sqlCmd+statement)

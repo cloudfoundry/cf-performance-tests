@@ -21,8 +21,8 @@ type Users struct {
 	Existing User
 }
 
-const psql_db string = "postgres"
-const mysql_db string = "mysql"
+const PsqlDb string = "postgres"
+const MysqlDb string = "mysql"
 
 type Config struct {
 	API                 string
@@ -88,7 +88,7 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
 	viper.SetDefault("results_folder", "../../test-results")
 	viper.SetDefault("test_resource_prefix", "perf")
-	viper.SetDefault("database_type", psql_db)
+	viper.SetDefault("database_type", PsqlDb)
 	err := viper.ReadInConfig()
 	if err != nil {
 		t.Fatalf("error loading config: %s", err.Error())
@@ -99,8 +99,8 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 		t.Fatalf("error parsing config: %s", err.Error())
 	}
 
-	if testConfig.DatabaseType != psql_db && testConfig.DatabaseType != mysql_db {
-		t.Fatalf("'database_type' parameter must be one of '%s' or '%s'", psql_db, mysql_db)
+	if testConfig.DatabaseType != PsqlDb && testConfig.DatabaseType != MysqlDb {
+		t.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
 	}
 
 	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
