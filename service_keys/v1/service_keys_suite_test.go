@@ -76,18 +76,18 @@ func createService() int {
 	serviceGuid := uuid.NewString()
 	serviceName := fmt.Sprintf("%s-service-%s", prefix, serviceGuid)
 	createServiceStatement := fmt.Sprintf(
-		"INSERT INTO services (guid, label, description, bindable) VALUES ('%s', '%s', '', true) RETURNING id",
+		"INSERT INTO services (guid, label, description, bindable) VALUES ('%s', '%s', '', true)",
 		serviceGuid, serviceName)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceStatement)
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceStatement, testConfig)
 }
 
 func createServicePlan(serviceId int) int {
 	servicePlanGuid := uuid.NewString()
 	servicePlanName := fmt.Sprintf("%s-service-plan-%s", prefix, servicePlanGuid)
 	createServicePlanStatement := fmt.Sprintf(
-		"INSERT INTO service_plans (guid, name, description, free, service_id, unique_id) VALUES ('%s', '%s', '', false, %d, 0) RETURNING id",
+		"INSERT INTO service_plans (guid, name, description, free, service_id, unique_id) VALUES ('%s', '%s', '', false, %d, 0)",
 		servicePlanGuid, servicePlanName, serviceId)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createServicePlanStatement)
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createServicePlanStatement, testConfig)
 }
 
 func createQuotaDefinition(totalServiceKeys int) int {
@@ -95,27 +95,27 @@ func createQuotaDefinition(totalServiceKeys int) int {
 	quotaDefinitionName := fmt.Sprintf("%s-quota-definition-%s", prefix, quotaDefinitionGuid)
 	totalServices := serviceInstancesPerSpace
 	createQuotaDefinitionStatement := fmt.Sprintf(
-		"INSERT INTO quota_definitions (guid, name, non_basic_services_allowed, total_services, memory_limit, total_routes, total_service_keys) VALUES ('%s', '%s', false, %d, 0, 0, %d) RETURNING id",
+		"INSERT INTO quota_definitions (guid, name, non_basic_services_allowed, total_services, memory_limit, total_routes, total_service_keys) VALUES ('%s', '%s', false, %d, 0, 0, %d)",
 		quotaDefinitionGuid, quotaDefinitionName, totalServices, totalServiceKeys)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createQuotaDefinitionStatement)
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createQuotaDefinitionStatement, testConfig)
 }
 
 func createOrg(quotaDefinitionId int) int {
 	orgGuid := uuid.NewString()
 	orgName := fmt.Sprintf("%s-org-%s", prefix, orgGuid)
 	createOrgStatement := fmt.Sprintf(
-		"INSERT INTO organizations (guid, name, quota_definition_id) VALUES ('%s', '%s', %d) RETURNING id",
+		"INSERT INTO organizations (guid, name, quota_definition_id) VALUES ('%s', '%s', %d)",
 		orgGuid, orgName, quotaDefinitionId)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createOrgStatement)
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createOrgStatement, testConfig)
 }
 
 func createSpace(orgId int) (int, string) {
 	spaceGuid := uuid.NewString()
 	spaceName := fmt.Sprintf("%s-space-%s", prefix, spaceGuid)
 	createSpaceStatement := fmt.Sprintf(
-		"INSERT INTO spaces (guid, name, organization_id) VALUES ('%s', '%s', %d) RETURNING id",
+		"INSERT INTO spaces (guid, name, organization_id) VALUES ('%s', '%s', %d)",
 		spaceGuid, spaceName, orgId)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createSpaceStatement), spaceGuid
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createSpaceStatement, testConfig), spaceGuid
 }
 
 var _ = AfterSuite(func() {

@@ -46,13 +46,7 @@ var _ = BeforeSuite(func() {
 		helpers.DefineRandomFunction(ccdb, ctx)
 	}
 
-	serviceBrokerId := 0
-	if testConfig.DatabaseType == helpers.PsqlDb {
-		serviceBrokerId = createServiceBroker(testConfig.GetNamePrefix())
-	}
-	if testConfig.DatabaseType == helpers.MysqlDb {
-		serviceBrokerId = helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT create_service_broker()")
-	}
+	serviceBrokerId := createServiceBroker(testConfig.GetNamePrefix())
 
 	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgStatement, testConfig)
@@ -117,7 +111,7 @@ func createServiceBroker(prefix string) int {
 	serviceBrokerGuid := uuid.NewString()
 	serviceBrokerName := fmt.Sprintf("%s-service-broker-%s", prefix, serviceBrokerGuid)
 	createServiceBrokerStatement := fmt.Sprintf(
-		"INSERT INTO service_brokers (guid, name, broker_url, auth_password) VALUES ('%s', '%s', '', '') RETURNING id",
+		"INSERT INTO service_brokers (guid, name, broker_url, auth_password) VALUES ('%s', '%s', '', '')",
 		serviceBrokerGuid, serviceBrokerName)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceBrokerStatement)
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceBrokerStatement, testConfig)
 }

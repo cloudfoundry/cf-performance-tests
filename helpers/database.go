@@ -231,10 +231,19 @@ func ExecutePreparedInsertStatement(db *sql.DB, ctx context.Context, statement s
 	return lastInsertId
 }
 
-func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string) int {
+func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, testConfig Config) int {
 	var lastInsertId int
 
-	err := db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
+	var err error = nil
+	if testConfig.DatabaseType == PsqlDb {
+		statement += " RETURNING id"
+		err = db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
+	}
+	if testConfig.DatabaseType == MysqlDb {
+		_, err = db.ExecContext(ctx, statement)
+		checkError(err)
+		db.QueryRowContext(ctx, "RETURN LAST_INSERT_ID()").Scan(&lastInsertId)
+	}
 	checkError(err)
 	return lastInsertId
 }
