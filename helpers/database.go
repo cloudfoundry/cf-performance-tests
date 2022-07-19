@@ -240,9 +240,11 @@ func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, t
 		err = db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
 	}
 	if testConfig.DatabaseType == MysqlDb {
-		_, err = db.ExecContext(ctx, statement)
+		res, err := db.ExecContext(ctx, statement)
 		checkError(err)
-		db.QueryRowContext(ctx, "RETURN LAST_INSERT_ID()").Scan(&lastInsertId)
+		id, err := res.LastInsertId()
+		checkError(err)
+		lastInsertId = int(id) // MySQL returns int64 -> truncation should be ok for test data
 	}
 	log.Printf("ExecuteInsertStatement: lastInsertId is %d", lastInsertId)
 	checkError(err)
