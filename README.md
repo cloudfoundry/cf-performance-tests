@@ -41,6 +41,7 @@ users:
   existing:  (optional block)
     username: "<non-admin username>"
     password: "<non-admin password>"
+database: "postgres" (default) or "mysql"
 ccdb_connection: "<connection string for CCDB>"
 uaadb_connection: "<connection string for UAADB>"  (optional, used to cleanup the created test user)
 ```

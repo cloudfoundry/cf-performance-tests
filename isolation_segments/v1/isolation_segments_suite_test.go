@@ -37,24 +37,24 @@ var _ = BeforeSuite(func() {
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
 
 	// create orgs
-	createOrgsStatement := fmt.Sprintf("SELECT FROM create_orgs(%v)", orgs)
-	helpers.ExecuteStatement(ccdb, ctx, createOrgsStatement)
+	createOrgsStatement := fmt.Sprintf("create_orgs(%v)", orgs)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgsStatement, testConfig)
 
 	// create isolation segments
-	createIsolationSegmentsStatement := fmt.Sprintf("SELECT FROM create_isolation_segments(%v)", isolationSegments)
-	helpers.ExecuteStatement(ccdb, ctx, createIsolationSegmentsStatement)
+	createIsolationSegmentsStatement := fmt.Sprintf("create_isolation_segments(%v)", isolationSegments)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createIsolationSegmentsStatement, testConfig)
 
 	// assign orgs to isolation segments; n orgs are assigned to a random isolation segment
-	assignOrgsToIsolationSegmentsStatement := fmt.Sprintf("SELECT FROM assign_orgs_to_isolation_segments(%d)", orgsWithinIsolationSegments)
-	helpers.ExecuteStatement(ccdb, ctx, assignOrgsToIsolationSegmentsStatement)
+	assignOrgsToIsolationSegmentsStatement := fmt.Sprintf("assign_orgs_to_isolation_segments(%d)", orgsWithinIsolationSegments)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignOrgsToIsolationSegmentsStatement, testConfig)
 
 	// assign the regular user to all orgs
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs
-	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
-	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 
-	helpers.AnalyzeDB(ccdb, ctx)
+	helpers.AnalyzeDB(ccdb, ctx, testConfig)
 })
 
 var _ = AfterSuite(func() {

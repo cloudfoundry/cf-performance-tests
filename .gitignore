@@ -1,4 +1,5 @@
 .vscode/*
 .idea/*
+vendor/*
 cf-performance-tests.iml
 config.yml
