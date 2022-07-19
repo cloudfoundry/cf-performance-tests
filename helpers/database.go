@@ -244,6 +244,7 @@ func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, t
 		checkError(err)
 		db.QueryRowContext(ctx, "RETURN LAST_INSERT_ID()").Scan(&lastInsertId)
 	}
+	log.Printf("ExecuteInsertStatement: lastInsertId is %d", lastInsertId)
 	checkError(err)
 	return lastInsertId
 }
