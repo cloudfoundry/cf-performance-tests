@@ -234,10 +234,10 @@ func ExecutePreparedInsertStatement(db *sql.DB, ctx context.Context, statement s
 func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, testConfig Config) int {
 	var lastInsertId int
 
-	var err error = nil
 	if testConfig.DatabaseType == PsqlDb {
 		statement += " RETURNING id"
-		err = db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
+		err := db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
+		checkError(err)
 	}
 	if testConfig.DatabaseType == MysqlDb {
 		res, err := db.ExecContext(ctx, statement)
@@ -246,8 +246,6 @@ func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, t
 		checkError(err)
 		lastInsertId = int(id) // MySQL returns int64 -> truncation should be ok for test data
 	}
-	log.Printf("ExecuteInsertStatement: lastInsertId is %d", lastInsertId)
-	checkError(err)
 	return lastInsertId
 }
 
