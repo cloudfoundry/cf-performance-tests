@@ -6,7 +6,6 @@ BEGIN
     DECLARE finished BOOLEAN DEFAULT FALSE;
     DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE '{{.Prefix}}-org-%';
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
-    SET counter = 0;
 
     OPEN orgs_cursor;
     org_loop:

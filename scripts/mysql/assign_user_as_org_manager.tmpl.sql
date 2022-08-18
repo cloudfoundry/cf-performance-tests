@@ -1,7 +1,6 @@
 CREATE PROCEDURE assign_user_as_org_manager(user_guid TEXT, num_orgs INT)
 BEGIN
     DECLARE v_user_id INT;
-    DECLARE num_assigned_orgs INT;
     DECLARE org_id INT;
     DECLARE finished BOOLEAN DEFAULT FALSE;
     DECLARE orgs_cursor CURSOR FOR SELECT id
@@ -10,7 +9,6 @@ BEGIN
                                    ORDER BY RAND()
                                    LIMIT num_orgs;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
-    SET num_assigned_orgs = 0;
 
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
     OPEN orgs_cursor;
