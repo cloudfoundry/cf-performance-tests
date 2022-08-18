@@ -77,6 +77,7 @@ func (config Config) GetSkipSSLValidation() bool                     { return co
 func (config Config) GetNamePrefix() string                          { return config.TestResourcePrefix }
 func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t }
 func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
+func (config Config) GetAddExistingUserToExistingSpace() bool        { return false }
 
 func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName string) *JsonReporter {
 	viper.SetConfigName("config")
