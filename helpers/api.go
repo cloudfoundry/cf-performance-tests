@@ -8,10 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/ginkgo/v2"
-
 	"github.com/cloudfoundry/cf-test-helpers/v2/cf"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
+	"github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 )
@@ -107,6 +106,19 @@ func TimeCFCurlReturning(b ginkgo.Benchmarker, timeout time.Duration, curlArgume
 
 	runtime := GetXRuntimeHeader(result.Out.Contents())
 	b.RecordValue("request time", runtime)
+
+	return result.ExitCode(), result.Out.Contents()
+}
+
+func V2TimeCFCurl(timeout time.Duration, curlArguments ...string) {
+	exitCode, _ := V2TimeCFCurlReturning(timeout, curlArguments...)
+	Expect(exitCode).To(Equal(0))
+}
+
+func V2TimeCFCurlReturning(timeout time.Duration, curlArguments ...string) (int, []byte) {
+	var args = []string{"curl", "--fail", "-v"}
+	args = append(args, curlArguments...)
+	result := cf.Cf(args...).Wait(timeout)
 
 	return result.ExitCode(), result.Out.Contents()
 }

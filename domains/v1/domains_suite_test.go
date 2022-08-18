@@ -74,4 +74,5 @@ var _ = AfterSuite(func() {
 
 func TestDomains(t *testing.T) {
 	RegisterFailHandler(Fail)
+	RunSpecs(t, "DomainsTest Suite")
 }

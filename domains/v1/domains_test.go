@@ -3,33 +3,56 @@ package domains
 import (
 	"fmt"
 	"math/rand"
+	"time"
 
+	"github.com/cloudfoundry/cf-performance-tests/helpers"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/cloudfoundry/cf-performance-tests/helpers"
+	"github.com/onsi/gomega/gmeasure"
 )
 
 var _ = Describe("domains", func() {
 	Describe("GET /v3/domains", func() {
-		Measure("as admin", func(b Benchmarker) {
-			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/domains")
-			})
-		}, testConfig.Samples)
 
-		Measure("as regular user", func(b Benchmarker) {
-			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/domains")
-			})
-		}, testConfig.Samples)
+		It("gets /v3/domains as admin efficiently", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/domains as admin")
+			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
-		Measure(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
-			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
-			})
-		}, testConfig.Samples)
+			experiment.Sample(func(idx int) {
+				experiment.MeasureDuration("GET /v3/domains as admin", func() {
+					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
+					})
+				})
+			}, gmeasure.SamplingConfig{N: 5, Duration: time.Minute}) // Sample up to 5 times OR up to one minute
+		})
+
+		It("gets /v3/domains as a regular user efficiently", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/domains as user")
+			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+
+			experiment.Sample(func(idx int) {
+				experiment.MeasureDuration("GET /v3/domains as user", func() {
+					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
+					})
+				})
+			}, gmeasure.SamplingConfig{N: 5, Duration: time.Minute}) // Sample up to 5 times OR up to one minute
+		})
+
+		It(fmt.Sprintf("gets /v3/domains as admin with page size %d efficiently", testConfig.LargePageSize), func() {
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/domains as admin with page size %d", testConfig.LargePageSize))
+			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+
+			experiment.Sample(func(idx int) {
+				experiment.MeasureDuration(fmt.Sprintf("GET /v3/domains as admin with page size %d", testConfig.LargePageSize), func() {
+					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
+					})
+				})
+			}, gmeasure.SamplingConfig{N: 5, Duration: time.Minute}) // Sample up to 5 times OR up to one minute
+		})
 	})
 
 	Describe("GET /v3/organizations/:guid/domains", func() {
