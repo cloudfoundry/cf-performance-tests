@@ -11,7 +11,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -101,7 +101,6 @@ var _ = AfterSuite(func() {
 
 func TestServicePlans(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "ServicePlansTest Suite", []Reporter{helpers.ConfigureJsonReporter(t, &testConfig, "service-plans")})
 }
 
 func createServiceBroker(prefix string) int {
