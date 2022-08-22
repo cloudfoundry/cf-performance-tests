@@ -9,6 +9,7 @@ import (
 
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/ginkgo/v2/types"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -72,7 +73,14 @@ var _ = AfterSuite(func() {
 	}
 })
 
+var _ = ReportAfterSuite("Domains test suite", func(report types.Report) {
+	//  TODO: write 'report' var(s) to reports
+	// ref: https://onsi.github.io/ginkgo/#generating-reports-programmatically
+})
+
 func TestDomains(t *testing.T) {
+	helpers.LoadConfig(&testConfig)
+	// helpers.V2ConfigureJsonReporter(&testConfig, "domains")
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "DomainsTest Suite")
 }

@@ -25,7 +25,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
 				})
-			}, gmeasure.SamplingConfig{N: 5, Duration: time.Minute}) // Sample up to 5 times OR up to one minute
+			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
 		})
 
 		It("gets /v3/domains as a regular user efficiently", func() {
@@ -38,7 +38,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
 				})
-			}, gmeasure.SamplingConfig{N: 5, Duration: time.Minute}) // Sample up to 5 times OR up to one minute
+			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
 		})
 
 		It(fmt.Sprintf("gets /v3/domains as admin with page size %d efficiently", testConfig.LargePageSize), func() {
@@ -51,7 +51,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
 					})
 				})
-			}, gmeasure.SamplingConfig{N: 5, Duration: time.Minute}) // Sample up to 5 times OR up to one minute
+			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
 		})
 	})
 

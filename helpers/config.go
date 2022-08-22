@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -30,6 +31,7 @@ type Config struct {
 	LargePageSize       int    `mapstructure:"large_page_size"`
 	LargeElementsFilter int    `mapstructure:"large_elements_filter"`
 	Samples             int
+	SampleLength        int           `mapstructure:"sample_length"`
 	BasicTimeout        time.Duration `mapstructure:"basic_timeout"`
 	LongTimeout         time.Duration `mapstructure:"long_timeout"`
 	Users               Users
@@ -103,4 +105,43 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 
 	timestamp := time.Now().Unix()
 	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+}
+
+func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonReporter {
+	viper.SetConfigName("config")
+	viper.AddConfigPath("../../")
+	viper.AddConfigPath("$HOME/.cf-performance-tests")
+	viper.SetDefault("results_folder", "../../test-results")
+	viper.SetDefault("test_resource_prefix", "perf")
+
+	err := viper.ReadInConfig()
+	err = viper.Unmarshal(testConfig)
+	if err != nil {
+		log.Fatalf("error parsing config: %s", err.Error())
+	}
+
+	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
+	err = os.MkdirAll(resultsFolder, os.ModePerm)
+	if err != nil {
+		log.Fatalf("Cannot create Directory: %s", err.Error())
+	}
+
+	timestamp := time.Now().Unix()
+	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+}
+
+func LoadConfig(testConfig *Config) {
+	viper.SetConfigName("config")
+	viper.AddConfigPath("../../")
+	viper.AddConfigPath("$HOME/.cf-performance-tests")
+	viper.SetDefault("results_folder", "../../test-results")
+	viper.SetDefault("test_resource_prefix", "perf")
+	err := viper.ReadInConfig()
+	if err != nil {
+		log.Fatalf("error loading config: %s", err.Error())
+	}
+	err = viper.Unmarshal(testConfig)
+	if err != nil {
+		log.Fatalf("error parsing config: %s", err.Error())
+	}
 }
