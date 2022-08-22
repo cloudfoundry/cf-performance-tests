@@ -3,7 +3,6 @@ package domains
 import (
 	"fmt"
 	"math/rand"
-	"time"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
@@ -25,7 +24,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
 				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples})
 		})
 
 		It("gets /v3/domains as a regular user efficiently", func() {
@@ -38,7 +37,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
 				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples})
 		})
 
 		It(fmt.Sprintf("gets /v3/domains as admin with page size %d efficiently", testConfig.LargePageSize), func() {
@@ -51,7 +50,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
 					})
 				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples})
 		})
 	})
 
@@ -70,7 +69,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
 					})
 				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples})
 		})
 
 		It("gets /v3/organizations/:guid/domains as regular user efficiently", func() {
@@ -87,7 +86,7 @@ var _ = Describe("domains", func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
 					})
 				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples})
 		})
 	})
 
@@ -110,7 +109,7 @@ var _ = Describe("domains", func() {
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
 
 			It("patches /v3/domains/:guid as admin efficiently", func() {
@@ -124,7 +123,7 @@ var _ = Describe("domains", func() {
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
 
 			It("deletes /v3/domains/:guid as admin efficiently", func() {
@@ -134,11 +133,16 @@ var _ = Describe("domains", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("DELETE /v3/domains/:guid as admin", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+							domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
+							Expect(domainGUIDs).NotTo(BeNil())
+							domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
+
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
+
 							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
 		})
 
@@ -157,7 +161,7 @@ var _ = Describe("domains", func() {
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
 		})
 	})
