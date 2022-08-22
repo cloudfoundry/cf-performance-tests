@@ -107,18 +107,8 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 }
 
-func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonReporter {
-	viper.SetConfigName("config")
-	viper.AddConfigPath("../../")
-	viper.AddConfigPath("$HOME/.cf-performance-tests")
-	viper.SetDefault("results_folder", "../../test-results")
-	viper.SetDefault("test_resource_prefix", "perf")
-
+func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *V2JsonReporter {
 	err := viper.ReadInConfig()
-	err = viper.Unmarshal(testConfig)
-	if err != nil {
-		log.Fatalf("error parsing config: %s", err.Error())
-	}
 
 	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
 	err = os.MkdirAll(resultsFolder, os.ModePerm)
@@ -127,7 +117,7 @@ func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonRepo
 	}
 
 	timestamp := time.Now().Unix()
-	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+	return NewV2JsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 }
 
 func LoadConfig(testConfig *Config) {

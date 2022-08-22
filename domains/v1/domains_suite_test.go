@@ -74,13 +74,11 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Domains test suite", func(report types.Report) {
-	//  TODO: write 'report' var(s) to reports
-	// ref: https://onsi.github.io/ginkgo/#generating-reports-programmatically
+	helpers.V2GenerateReports(helpers.V2ConfigureJsonReporter(&testConfig, "domains"), report)
 })
 
 func TestDomains(t *testing.T) {
 	helpers.LoadConfig(&testConfig)
-	// helpers.V2ConfigureJsonReporter(&testConfig, "domains")
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "DomainsTest Suite")
 }
