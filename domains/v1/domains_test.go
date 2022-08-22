@@ -56,23 +56,39 @@ var _ = Describe("domains", func() {
 	})
 
 	Describe("GET /v3/organizations/:guid/domains", func() {
-		Measure("as admin", func(b Benchmarker) {
+		It("gets /v3/organizations/:guid/domains as admin efficiently", func() {
 			orgGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/organizations")
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
-			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
-			})
-		}, testConfig.Samples)
 
-		Measure("as regular user", func(b Benchmarker) {
+			experiment := gmeasure.NewExperiment("GET /v3/organizations/:guid/domains as admin")
+			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+
+			experiment.Sample(func(idx int) {
+				experiment.MeasureDuration("GET /v3/organizations/:guid/domains as admin", func() {
+					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+					})
+				})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+		})
+
+		It("gets /v3/organizations/:guid/domains as regular user efficiently", func() {
 			orgGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/organizations")
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
-			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
-			})
-		}, testConfig.Samples)
+
+			experiment := gmeasure.NewExperiment("GET /v3/organizations/:guid/domains as regular user")
+			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+
+			experiment.Sample(func(idx int) {
+				experiment.MeasureDuration("GET /v3/organizations/:guid/domains as regular user", func() {
+					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+					})
+				})
+			}, gmeasure.SamplingConfig{N: testConfig.Samples, Duration: time.Duration(testConfig.SampleLength)})
+		})
 	})
 
 	Describe("individually", func() {
