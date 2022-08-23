@@ -57,22 +57,17 @@ func NewV2JsonReporter(outputFile string, cfDeploymentVersion string, CapiVersio
 }
 
 func V2GenerateReports(reporter *V2JsonReporter, report types.Report) {
-	// For each report in SpecReports
 	for _, r := range report.SpecReports {
-
-		// For each report in ReportEntries
 		for _, re := range r.ReportEntries {
-			// Set up CustomReportEntry
+			// Set up CustomReportEntry & unmarshal json
 			cre := CustomReportEntry{}
 			json.Unmarshal([]byte(re.Value.AsJSON), &cre)
 
 			// Set up measurement
 			m := Measurement{}
 
-			// Fill values
 			m.Name = re.Name
-
-			// m.Results =
+			// m.Results = // TODO
 			m.Smallest = cre.Min
 			m.Largest = cre.Max
 			m.Average = cre.Mean
