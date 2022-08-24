@@ -59,16 +59,23 @@ func V2GenerateReports(reporter *V2JsonReporter, report types.Report) {
 			m := Measurement{}
 			m.Name = "request time"
 
-			// TODO Attach all results for experiment to measurement
+			// Attach all results for experiment to measurement
 			exp := e.Get(e.Measurements[0].Name)
-			m.Results = exp.Values
+			durations := exp.Durations
+			var floatDurations []float64
+
+			for _, d := range durations {
+				floatDurations = append(floatDurations, d.Seconds())
+			}
+
+			m.Results = floatDurations
 
 			// Attach experiment statistics to measurement
 			expStats := e.GetStats(e.Measurements[0].Name)
-			m.Smallest = float64(expStats.DurationBundle[gmeasure.StatMin])
-			m.Largest = float64(expStats.DurationBundle[gmeasure.StatMax])
-			m.Average = float64(expStats.DurationBundle[gmeasure.StatMean])
-			m.StdDeviation = float64(expStats.DurationBundle[gmeasure.StatStdDev])
+			m.Smallest = expStats.DurationBundle[gmeasure.StatMin].Seconds()
+			m.Largest = expStats.DurationBundle[gmeasure.StatMax].Seconds()
+			m.Average = expStats.DurationBundle[gmeasure.StatMean].Seconds()
+			m.StdDeviation = expStats.DurationBundle[gmeasure.StatStdDev].Seconds()
 
 			// Attach labels to measurement
 			m.SmallestLabel = "Smallest"
