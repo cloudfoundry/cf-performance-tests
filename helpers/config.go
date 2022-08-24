@@ -117,7 +117,7 @@ func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *V2JsonRe
 	}
 
 	timestamp := time.Now().Unix()
-	return NewV2JsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
+	return NewV2JsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName)
 }
 
 func LoadConfig(testConfig *Config) {

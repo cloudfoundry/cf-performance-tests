@@ -8,26 +8,17 @@ import (
 
 	"github.com/onsi/ginkgo/v2/config"
 	"github.com/onsi/ginkgo/v2/types"
+	"github.com/onsi/gomega/gmeasure"
 )
 
 type V2JsonReporter struct {
+	testSuiteName       string
 	Measurements        map[string]map[string]Measurement `json:"measurements"`
 	outputFile          string
 	CfDeploymentVersion string `json:"cfDeploymentVersion"`
 	Timestamp           int64  `json:"timestamp"`
 	CapiVersion         string `json:"capiVersion"`
 	CCDBVersion         string `json:"ccdbVersion"`
-}
-
-type CustomReportEntry struct {
-	Name    string    `json:"Name"`
-	Results []float64 `json:"Results"` // TODO implement
-	Number  int       `json:"N"`
-	Min     float64   `json:"Min"`
-	Median  float64   `json:"Median"`
-	Mean    float64   `json:"Mean"`
-	StdDev  float64   `json:"StdDev"`
-	Max     float64   `json:"Max"`
 }
 
 type Measurement struct {
@@ -46,8 +37,9 @@ type Measurement struct {
 	Precision     int         `json:"Precision"`
 }
 
-func NewV2JsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64) *V2JsonReporter {
+func NewV2JsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64, testSuiteName string) *V2JsonReporter {
 	return &V2JsonReporter{
+		testSuiteName:       testSuiteName,
 		outputFile:          outputFile,
 		CfDeploymentVersion: cfDeploymentVersion,
 		CapiVersion:         CapiVersion,
@@ -59,25 +51,36 @@ func NewV2JsonReporter(outputFile string, cfDeploymentVersion string, CapiVersio
 func V2GenerateReports(reporter *V2JsonReporter, report types.Report) {
 	for _, r := range report.SpecReports {
 		for _, re := range r.ReportEntries {
-			// Set up CustomReportEntry & unmarshal json
-			cre := CustomReportEntry{}
-			json.Unmarshal([]byte(re.Value.AsJSON), &cre)
+			// Set up experiment
+			var a interface{} = re.Value.GetRawValue()
+			e := a.(*gmeasure.Experiment)
 
 			// Set up measurement
 			m := Measurement{}
+			m.Name = "request time"
 
-			m.Name = re.Name
-			// m.Results = // TODO
-			m.Smallest = cre.Min
-			m.Largest = cre.Max
-			m.Average = cre.Mean
-			m.StdDeviation = cre.StdDev
+			// TODO Attach all results for experiment to measurement
+			exp := e.Get(e.Measurements[0].Name)
+			m.Results = exp.Values
 
+			// Attach experiment statistics to measurement
+			expStats := e.GetStats(e.Measurements[0].Name)
+			m.Smallest = float64(expStats.DurationBundle[gmeasure.StatMin])
+			m.Largest = float64(expStats.DurationBundle[gmeasure.StatMax])
+			m.Average = float64(expStats.DurationBundle[gmeasure.StatMean])
+			m.StdDeviation = float64(expStats.DurationBundle[gmeasure.StatStdDev])
+
+			// Attach labels to measurement
+			m.SmallestLabel = "Smallest"
+			m.LargestLabel = "Largest"
+			m.AverageLabel = "Average"
+
+			// Create measurement map structure
 			mp := make(map[string]Measurement)
 			mp["request time"] = m
 
-			// Add struct to V2JsonReport array of measurements
-			reporter.Measurements[fmt.Sprint("domains::GET /v3/domains::as admin")] = mp // TODO fix hard coding here by using a fmt.Sprintf
+			// Add map to overall reporter structure
+			reporter.Measurements[fmt.Sprintf("%s::%s", reporter.testSuiteName, e.Name)] = mp
 		}
 	}
 
