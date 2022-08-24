@@ -80,7 +80,7 @@ func V2GenerateReports(reporter *V2JsonReporter, report types.Report) {
 			mp["request time"] = m
 
 			// Add map to overall reporter structure
-			reporter.Measurements[fmt.Sprintf("%s::%s", reporter.testSuiteName, e.Name)] = mp
+			reporter.Measurements[fmt.Sprintf("%s::%s::%s", reporter.testSuiteName, e.Measurements[0].Name, e.Name)] = mp
 		}
 	}
 

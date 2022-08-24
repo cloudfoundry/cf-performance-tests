@@ -15,11 +15,11 @@ var _ = Describe("domains", func() {
 	Describe("GET /v3/domains", func() {
 
 		It("gets /v3/domains as admin efficiently", func() {
-			experiment := gmeasure.NewExperiment("GET /v3/domains as admin")
+			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/domains as admin", func() {
+				experiment.MeasureDuration("GET /v3/domains", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
@@ -28,11 +28,11 @@ var _ = Describe("domains", func() {
 		})
 
 		It("gets /v3/domains as a regular user efficiently", func() {
-			experiment := gmeasure.NewExperiment("GET /v3/domains as user")
+			experiment := gmeasure.NewExperiment("as user")
 			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/domains as user", func() {
+				experiment.MeasureDuration("GET /v3/domains", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
@@ -41,11 +41,11 @@ var _ = Describe("domains", func() {
 		})
 
 		It(fmt.Sprintf("gets /v3/domains as admin with page size %d efficiently", testConfig.LargePageSize), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/domains as admin with page size %d", testConfig.LargePageSize))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration(fmt.Sprintf("GET /v3/domains as admin with page size %d", testConfig.LargePageSize), func() {
+				experiment.MeasureDuration(fmt.Sprintf("GET /v3/domains"), func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
 					})
@@ -60,11 +60,11 @@ var _ = Describe("domains", func() {
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 
-			experiment := gmeasure.NewExperiment("GET /v3/organizations/:guid/domains as admin")
+			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/organizations/:guid/domains as admin", func() {
+				experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
 					})
@@ -77,11 +77,11 @@ var _ = Describe("domains", func() {
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 
-			experiment := gmeasure.NewExperiment("GET /v3/organizations/:guid/domains as regular user")
+			experiment := gmeasure.NewExperiment("as regular user")
 			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/organizations/:guid/domains as regular user", func() {
+				experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
 					})
@@ -100,11 +100,11 @@ var _ = Describe("domains", func() {
 			})
 
 			It("gets /v3/domains/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("GET /v3/domains/:guid as admin")
+				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/domains/:guid as admin", func() {
+					experiment.MeasureDuration("GET /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
@@ -113,11 +113,11 @@ var _ = Describe("domains", func() {
 			})
 
 			It("patches /v3/domains/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("PATCH /v3/domains/:guid as admin")
+				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("PATCH /v3/domains/:guid as admin", func() {
+					experiment.MeasureDuration("PATCH /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 							data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
@@ -127,11 +127,11 @@ var _ = Describe("domains", func() {
 			})
 
 			It("deletes /v3/domains/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("DELETE /v3/domains/:guid as admin")
+				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("DELETE /v3/domains/:guid as admin", func() {
+					experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 							domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
 							Expect(domainGUIDs).NotTo(BeNil())
@@ -152,11 +152,11 @@ var _ = Describe("domains", func() {
 				Expect(domainGUIDs).NotTo(BeNil())
 				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
 
-				experiment := gmeasure.NewExperiment("GET /v3/domains/:guid as regular user")
+				experiment := gmeasure.NewExperiment("as regular user")
 				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
 
 				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/domains/:guid as regular user", func() {
+					experiment.MeasureDuration("GET /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
