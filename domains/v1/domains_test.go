@@ -16,7 +16,7 @@ var _ = Describe("domains", func() {
 
 		It("gets /v3/domains as admin efficiently", func() {
 			experiment := gmeasure.NewExperiment("as admin")
-			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/domains", func() {
@@ -29,7 +29,7 @@ var _ = Describe("domains", func() {
 
 		It("gets /v3/domains as a regular user efficiently", func() {
 			experiment := gmeasure.NewExperiment("as user")
-			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/domains", func() {
@@ -42,7 +42,7 @@ var _ = Describe("domains", func() {
 
 		It(fmt.Sprintf("gets /v3/domains as admin with page size %d efficiently", testConfig.LargePageSize), func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
-			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration(fmt.Sprintf("GET /v3/domains"), func() {
@@ -61,7 +61,7 @@ var _ = Describe("domains", func() {
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 
 			experiment := gmeasure.NewExperiment("as admin")
-			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
@@ -78,7 +78,7 @@ var _ = Describe("domains", func() {
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 
 			experiment := gmeasure.NewExperiment("as regular user")
-			AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
@@ -101,7 +101,7 @@ var _ = Describe("domains", func() {
 
 			It("gets /v3/domains/:guid as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
-				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+				AddReportEntry(experiment.Name, experiment)
 
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/domains/:guid", func() {
@@ -114,7 +114,7 @@ var _ = Describe("domains", func() {
 
 			It("patches /v3/domains/:guid as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
-				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+				AddReportEntry(experiment.Name, experiment)
 
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("PATCH /v3/domains/:guid", func() {
@@ -128,7 +128,7 @@ var _ = Describe("domains", func() {
 
 			It("deletes /v3/domains/:guid as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
-				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+				AddReportEntry(experiment.Name, experiment)
 
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
@@ -153,7 +153,7 @@ var _ = Describe("domains", func() {
 				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
 
 				experiment := gmeasure.NewExperiment("as regular user")
-				AddReportEntry(experiment.Name, experiment) // #TODO include if using built-in Ginkgo reporter.
+				AddReportEntry(experiment.Name, experiment)
 
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/domains/:guid", func() {
