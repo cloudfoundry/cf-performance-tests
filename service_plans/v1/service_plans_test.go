@@ -2,11 +2,12 @@ package service_plans
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
 
-	// . "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gmeasure"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -58,32 +59,48 @@ var _ = Describe("service plans", func() {
 		})
 	})
 
-	// Describe("GET /v3/service_plans/:guid", func() {
-	// var servicePlanGUID string
-	// Context("as admin", func() {
-	// 	BeforeEach(func() {
-	// 		servicePlanGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/service_plans")
-	// 		Expect(servicePlanGUIDs).NotTo(BeNil())
-	// 		servicePlanGUID = servicePlanGUIDs[rand.Intn(len(servicePlanGUIDs))]
-	// 	})
-	// 	Measure("show one", func(b Benchmarker) {
-	// 		workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-	// 			helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
-	// 		})
-	// 	}, testConfig.Samples)
+	Describe("GET /v3/service_plans/:guid", func() {
+		var servicePlanGUID string
+		Context("as admin", func() {
+			BeforeEach(func() {
+				servicePlanGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/service_plans")
+				Expect(servicePlanGUIDs).NotTo(BeNil())
+				servicePlanGUID = servicePlanGUIDs[rand.Intn(len(servicePlanGUIDs))]
+			})
 
-	// })
-	// Context("as regular user", func() {
-	// 	BeforeEach(func() {
-	// 		servicePlanGUID = getRandomLimitedServicePlanGuid()
-	// 	})
-	// 	Measure("show one", func(b Benchmarker) {
-	// 		workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
-	// 			helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
-	// 		})
-	// 	}, testConfig.Samples)
-	// })
-	// })
+			It("shows one /v3/service_plans/:guid as admin efficiently", func() {
+				experiment := gmeasure.NewExperiment("as admin")
+				AddReportEntry(experiment.Name, experiment)
+
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans/:guid", func() {
+						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
+						})
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+
+		Context("as regular user", func() {
+			BeforeEach(func() {
+				servicePlanGUID = getRandomLimitedServicePlanGuid()
+			})
+
+			It("shows one /v3/service_plans/:guid as admin efficiently", func() {
+				experiment := gmeasure.NewExperiment("as user")
+				AddReportEntry(experiment.Name, experiment)
+
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans/:guid", func() {
+						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
+						})
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+	})
 
 	// Describe("GET /v3/service_plans/:guid/visibility", func() {
 	// 	var servicePlanGUID string
