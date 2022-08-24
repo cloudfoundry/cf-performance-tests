@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gmeasure"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
 )
@@ -23,15 +24,23 @@ var _ = Describe("service keys", func() {
 					serviceInstanceGUID = serviceInstanceGUIDs[rand.Intn(len(serviceInstanceGUIDs))]
 				})
 
-				Measure("POST /v3/service_credential_bindings", func(b Benchmarker) {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
-						data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
-						exitCode, body := helpers.TimeCFCurlReturning(b, testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
-						Expect(exitCode).To(Equal(22))
-						Expect(body).To(ContainSubstring("You have exceeded your organization's limit for service binding of type key."))
-					})
-				}, testConfig.Samples)
+				It("posts /v3/service_credential_bindings as admin efficiently", func() {
+					experiment := gmeasure.NewExperiment("as admin")
+					AddReportEntry(experiment.Name, experiment)
+
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("POST /v3/service_credential_bindings", func() {
+							workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+								serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
+								data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
+
+								exitCode, body := helpers.V2TimeCFCurlReturning(testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
+								Expect(exitCode).To(Equal(22))
+								Expect(body).To(ContainSubstring("You have exceeded your organization's limit for service binding of type key."))
+							})
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 
 			Describe("with unlimited service keys quota", func() {
@@ -42,16 +51,24 @@ var _ = Describe("service keys", func() {
 					serviceInstanceGUID = serviceInstanceGUIDs[rand.Intn(len(serviceInstanceGUIDs))]
 				})
 
-				Measure("POST /v3/service_credential_bindings", func(b Benchmarker) {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
-						data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
-						exitCode, body := helpers.TimeCFCurlReturning(b, testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
-						Expect(exitCode).To(Equal(0))
-						Expect(body).To(ContainSubstring("202 Accepted"))
-						// Note: The created VCAP::CloudController::V3::CreateBindingAsyncJob fails, as there is no real service broker to handle it.
-					})
-				}, testConfig.Samples)
+				It("posts /v3/service_credential_bindings as admin efficiently", func() {
+					experiment := gmeasure.NewExperiment("as admin")
+					AddReportEntry(experiment.Name, experiment)
+
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("POST /v3/service_credential_bindings", func() {
+							workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+								serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
+								data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
+
+								exitCode, body := helpers.V2TimeCFCurlReturning(testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
+								Expect(exitCode).To(Equal(0))
+								Expect(body).To(ContainSubstring("202 Accepted"))
+								// Note: The created VCAP::CloudController::V3::CreateBindingAsyncJob fails, as there is no real service broker to handle it.
+							})
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 		})
 	})

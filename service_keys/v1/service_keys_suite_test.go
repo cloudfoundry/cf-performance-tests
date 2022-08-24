@@ -10,6 +10,7 @@ import (
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	"github.com/google/uuid"
 	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/ginkgo/v2/types"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -134,6 +135,12 @@ var _ = AfterSuite(func() {
 	}
 })
 
+var _ = ReportAfterSuite("Service keys test suite", func(report types.Report) {
+	helpers.V2GenerateReports(helpers.V2ConfigureJsonReporter(&testConfig, "Service keys"), report)
+})
+
 func TestServiceKeys(t *testing.T) {
+	helpers.LoadConfig(&testConfig)
 	RegisterFailHandler(Fail)
+	RunSpecs(t, "Service keys Test Suite")
 }
