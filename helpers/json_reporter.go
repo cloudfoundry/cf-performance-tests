@@ -34,7 +34,6 @@ type Measurement struct {
 	LargestLabel  string      `json:"LargestLabel"`
 	AverageLabel  string      `json:"AverageLabel"`
 	Units         string      `json:"Units"`
-	Precision     int         `json:"Precision"`
 }
 
 func NewV2JsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64, testSuiteName string) *V2JsonReporter {
@@ -81,6 +80,7 @@ func V2GenerateReports(reporter *V2JsonReporter, report types.Report) {
 			m.SmallestLabel = "Smallest"
 			m.LargestLabel = "Largest"
 			m.AverageLabel = "Average"
+			m.Units = "Seconds"
 
 			// Create measurement map structure
 			mp := make(map[string]Measurement)
