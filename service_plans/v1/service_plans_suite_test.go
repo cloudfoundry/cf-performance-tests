@@ -43,43 +43,46 @@ var _ = BeforeSuite(func() {
 	fmt.Printf("%v Starting to seed database with testdata...\n", time.Now().Format(time.RFC850))
 
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
+	if testConfig.DatabaseType == helpers.MysqlDb {
+		helpers.DefineRandomFunction(ccdb, ctx)
+	}
 
 	serviceBrokerId := createServiceBroker(testConfig.GetNamePrefix())
 
-	createOrgStatement := fmt.Sprintf("SELECT FROM create_orgs(%d)", orgs)
-	helpers.ExecuteStatement(ccdb, ctx, createOrgStatement)
+	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgStatement, testConfig)
 
-	createPublicServicePlansStatement := fmt.Sprintf("SELECT FROM create_services_and_plans(%v, %v, %v, %v, %v)",
+	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
 		serviceOfferings, serviceBrokerId, servicePlansPublic, true, 0)
-	helpers.ExecuteStatement(ccdb, ctx, createPublicServicePlansStatement)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createPublicServicePlansStatement, testConfig)
 
-	createPrivateServicePlansStatement := fmt.Sprintf("SELECT FROM create_services_and_plans(%v, %v, %v, %v, %v)",
+	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
 		serviceOfferings, serviceBrokerId, servicePlansPrivateWithoutOrgs, false, 0)
-	helpers.ExecuteStatement(ccdb, ctx, createPrivateServicePlansStatement)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansStatement, testConfig)
 
-	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("SELECT FROM create_services_and_plans(%v, %v, %v, %v, %v)",
+	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
 		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan)
-	helpers.ExecuteStatement(ccdb, ctx, createPrivateServicePlansWithOrgsStatement)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansWithOrgsStatement, testConfig)
 
 	// create service instances incl dependent resources
 	spacesPerOrg := 1
-	createSpacesStatement := fmt.Sprintf("SELECT FROM create_spaces(%d)", spacesPerOrg)
-	helpers.ExecuteStatement(ccdb, ctx, createSpacesStatement)
+	createSpacesStatement := fmt.Sprintf("create_spaces(%d)", spacesPerOrg)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
 	selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 1", testConfig.GetNamePrefix())
 	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
 	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM service_plans ORDER BY random() LIMIT 1")
-	createServiceInstancesStatement := fmt.Sprintf("SELECT FROM create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
-	helpers.ExecuteStatement(ccdb, ctx, createServiceInstancesStatement)
+	createServiceInstancesStatement := fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs / 2
-	assignUserAsOrgManager := fmt.Sprintf("SELECT FROM assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
-	helpers.ExecuteStatement(ccdb, ctx, assignUserAsOrgManager)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 	spacesAssignedToRegularUser := orgs * spacesPerOrg / 2
-	assignUserAsSpaceDeveloper := fmt.Sprintf("SELECT FROM assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
-	helpers.ExecuteStatement(ccdb, ctx, assignUserAsSpaceDeveloper)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
 
-	helpers.AnalyzeDB(ccdb, ctx)
+	helpers.AnalyzeDB(ccdb, ctx, testConfig)
 	fmt.Printf("%v Finished seeding database.\n", time.Now().Format(time.RFC850))
 })
 
@@ -114,7 +117,7 @@ func createServiceBroker(prefix string) int {
 	serviceBrokerGuid := uuid.NewString()
 	serviceBrokerName := fmt.Sprintf("%s-service-broker-%s", prefix, serviceBrokerGuid)
 	createServiceBrokerStatement := fmt.Sprintf(
-		"INSERT INTO service_brokers (guid, name, broker_url, auth_password) VALUES ('%s', '%s', '', '') RETURNING id",
+		"INSERT INTO service_brokers (guid, name, broker_url, auth_password) VALUES ('%s', '%s', '', '')",
 		serviceBrokerGuid, serviceBrokerName)
-	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceBrokerStatement)
+	return helpers.ExecuteInsertStatement(ccdb, ctx, createServiceBrokerStatement, testConfig)
 }

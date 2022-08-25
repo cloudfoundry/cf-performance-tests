@@ -9,57 +9,101 @@ import (
 	"log"
 	"path"
 	"runtime"
+	"strings"
 	"text/template"
 	"time"
 
 	_ "github.com/jackc/pgx/v4"
 	_ "github.com/jackc/pgx/v4/stdlib"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func OpenDbConnections(testConfig Config) (ccdb, uaadb *sql.DB, ctx context.Context) {
-	ccdb, err := sql.Open("pgx", testConfig.CcdbConnection)
+	log.Printf("Opening database connection to %s...", testConfig.DatabaseType)
+	driverName := ""
+	switch testConfig.DatabaseType {
+	case PsqlDb:
+		driverName = "pgx"
+	case MysqlDb:
+		driverName = "mysql"
+	}
+
+	ccdb, err := sql.Open(driverName, testConfig.CcdbConnection)
 	checkError(err)
 
 	if testConfig.UaadbConnection != "" {
-		uaadb, err = sql.Open("pgx", testConfig.UaadbConnection)
+		uaadb, err = sql.Open(driverName, testConfig.UaadbConnection)
 		checkError(err)
 	}
 
 	ctx = context.Background()
-
 	return
 }
 
-func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+func evaluateTemplate(templ string, testConfig Config) string {
 	type StoredProceduresSQLTemplate struct {
 		Prefix string
 	}
-	_, filename, _, ok := runtime.Caller(0)
+
+	tmpl, err := template.New("sql_functions").Parse(templ)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	templateResult := new(bytes.Buffer)
+	err = tmpl.Execute(templateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return templateResult.String()
+}
+
+func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	_, currentDir, _, ok := runtime.Caller(0)
 	if !ok {
 		log.Fatal("Failed to retrieve current file location")
 	}
 
-	pgsqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(filename), "../scripts/pgsql_functions.tmpl.sql"))
-	if err != nil {
-		log.Fatal(err)
+	if testConfig.DatabaseType == PsqlDb {
+		sqlFunctionsTemplate, err := ioutil.ReadFile(path.Join(path.Dir(currentDir), "../scripts/pgsql_functions.tmpl.sql"))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlFunctionsTemplate), testConfig))
 	}
 
-	tmpl, err := template.New("pgsql_functions").Parse(string(pgsqlFunctionsTemplate))
-	if err != nil {
-		log.Fatal(err)
-	}
+	if testConfig.DatabaseType == MysqlDb {
+		mysqlDir := path.Join(path.Dir(currentDir), "../scripts/mysql/")
+		mysqlDirFiles, err := ioutil.ReadDir(mysqlDir)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	pgsqlFunctionsTemplateResult := new(bytes.Buffer)
-	err = tmpl.Execute(pgsqlFunctionsTemplateResult, StoredProceduresSQLTemplate{testConfig.GetNamePrefix()})
-	if err != nil {
-		log.Fatal(err)
+		for _, mysqlFile := range mysqlDirFiles {
+			log.Printf("Reading MySQL stored procedure from file '%s'...", mysqlFile.Name())
+			sqlTemplate, err := ioutil.ReadFile(path.Join(mysqlDir, mysqlFile.Name()))
+			if err != nil {
+				log.Fatal(err)
+			}
+			procedureName := strings.Split(mysqlFile.Name(), ".")[0]
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP FUNCTION IF EXISTS %s", procedureName))
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP PROCEDURE IF EXISTS %s", procedureName))
+			ExecuteStatement(ccdb, ctx, evaluateTemplate(string(sqlTemplate), testConfig))
+		}
 	}
+}
 
-	ExecuteStatement(ccdb, ctx, pgsqlFunctionsTemplateResult.String())
+// define "random()" function for MySQL to enable re-use of PostgreSQL statements
+func DefineRandomFunction(ccdb *sql.DB, ctx context.Context) {
+	ExecuteStatement(ccdb, ctx, "DROP FUNCTION IF EXISTS random")
+	ExecuteStatement(ccdb, ctx, "CREATE FUNCTION random() RETURNS FLOAT RETURN RAND()")
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
-	deleteStatements := []string{
+	deleteStatementsPostgres := []string{
 		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
 		"DELETE FROM routes WHERE host LIKE '%s'",
 		"DELETE FROM domain_annotations USING domains WHERE domain_annotations.resource_guid = domains.guid AND domains.name LIKE '%s'",
@@ -93,13 +137,48 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM services WHERE label LIKE '%s'",
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
+	deleteStatementsMySql := []string{
+		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
+		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM service_keys WHERE name LIKE '%s'",
+		"DELETE FROM s_b USING service_bindings s_b, service_instances s_i WHERE s_i.guid = s_b.service_instance_guid AND s_i.name LIKE '%s'",
+		"DELETE FROM service_instances WHERE name LIKE '%s'",
+		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, security_groups s_g WHERE s_g_s.security_group_id = s_g.id AND s_g.name LIKE '%s'",
+		"DELETE FROM s_g_s USING security_groups_spaces s_g_s, spaces s WHERE s_g_s.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM security_groups WHERE name LIKE '%s'",
+		"DELETE FROM s_d USING spaces_developers s_d, spaces s WHERE s_d.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM s_m USING spaces_managers s_m, spaces s WHERE s_m.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM s_a USING spaces_auditors s_a, spaces s WHERE s_a.space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM s_l USING space_labels s_l, spaces s WHERE s_l.resource_guid = s.guid AND s.name LIKE '%s'",
+		"DELETE FROM spaces WHERE name LIKE '%s'",
+		"DELETE FROM s_p_v USING service_plan_visibilities s_p_v, organizations o WHERE s_p_v.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM o_u USING organizations_users o_u, organizations o WHERE o_u.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM o_i_s USING organizations_isolation_segments o_i_s, organizations o WHERE o_i_s.organization_guid = o.guid AND o.name LIKE '%s'",
+		"DELETE FROM organizations WHERE name LIKE '%s'",
+		"DELETE FROM i_s_a USING isolation_segment_annotations i_s_a, isolation_segments i_s WHERE i_s_a.resource_guid = i_s.guid AND i_s.name LIKE '%s'",
+		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
+		"DELETE FROM s_p_v USING service_plan_visibilities s_p_v, service_plans s_p WHERE s_p.id = s_p_v.service_plan_id AND s_p.name LIKE '%s'",
+		"DELETE FROM service_plans WHERE name LIKE '%s'",
+		"DELETE FROM services WHERE label LIKE '%s'",
+		"DELETE FROM service_brokers WHERE name LIKE '%s'",
+	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
 
-	for _, statement := range deleteStatements {
-		ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
+	if testConfig.DatabaseType == PsqlDb {
+		for _, statement := range deleteStatementsPostgres {
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
+		}
+
+		log.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
+		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 	}
-	fmt.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
-	ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
+
+	if testConfig.DatabaseType == MysqlDb {
+		for _, statement := range deleteStatementsMySql {
+			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
+		}
+	}
 
 	if uaadb != nil {
 		userGuids := ExecuteSelectStatement(uaadb, ctx, fmt.Sprintf("SELECT id FROM users WHERE username LIKE '%s'", nameQuery))
@@ -112,9 +191,27 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 	}
 }
 
-func AnalyzeDB(ccdb *sql.DB, ctx context.Context) {
-	fmt.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
-	ExecuteStatement(ccdb, ctx, "ANALYZE;")
+func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
+	if testConfig.DatabaseType == PsqlDb {
+		log.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
+		ExecuteStatement(ccdb, ctx, "ANALYZE;")
+	}
+	if testConfig.DatabaseType == PsqlDb {
+		log.Printf("Skipping 'ANALYZE' for MySQL.")
+	}
+}
+
+func ExecuteStoredProcedure(db *sql.DB, ctx context.Context, statement string, testConfig Config) {
+	sqlCmd := ""
+	switch testConfig.DatabaseType {
+	case PsqlDb:
+		sqlCmd = "SELECT FROM "
+	case MysqlDb:
+		sqlCmd = "CALL "
+	}
+	log.Printf("Executing stored procedure: %s", sqlCmd+statement)
+	ExecuteStatement(db, ctx, sqlCmd+statement)
+	log.Printf("Finished stored procedure: %s", sqlCmd+statement)
 }
 
 func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {
@@ -135,11 +232,21 @@ func ExecutePreparedInsertStatement(db *sql.DB, ctx context.Context, statement s
 	return lastInsertId
 }
 
-func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string) int {
+func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, testConfig Config) int {
 	var lastInsertId int
 
-	err := db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
-	checkError(err)
+	if testConfig.DatabaseType == PsqlDb {
+		statement += " RETURNING id"
+		err := db.QueryRowContext(ctx, statement).Scan(&lastInsertId)
+		checkError(err)
+	}
+	if testConfig.DatabaseType == MysqlDb {
+		res, err := db.ExecContext(ctx, statement)
+		checkError(err)
+		id, err := res.LastInsertId()
+		checkError(err)
+		lastInsertId = int(id) // MySQL returns int64 -> truncation should be ok for test data
+	}
 	return lastInsertId
 }
 
@@ -183,6 +290,17 @@ func ExecuteSelectStatementOneRow(db *sql.DB, ctx context.Context, statement str
 	}
 
 	return result
+}
+
+func ConvertToString(input interface{}) string {
+	if result, ok := input.(string); ok {
+		return result
+	}
+	if result, ok := input.([]uint8); ok {
+		return string(result)
+	}
+	log.Fatalf("Cannot convert input '%v' to string (type is '%T')", input, input)
+	return ""
 }
 
 func checkError(err error) {

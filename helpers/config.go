@@ -21,6 +21,9 @@ type Users struct {
 	Existing User
 }
 
+const PsqlDb string = "postgres"
+const MysqlDb string = "mysql"
+
 type Config struct {
 	API                 string
 	UseHttp             bool   `mapstructure:"use_http"`
@@ -34,6 +37,7 @@ type Config struct {
 	BasicTimeout        time.Duration `mapstructure:"basic_timeout"`
 	LongTimeout         time.Duration `mapstructure:"long_timeout"`
 	Users               Users
+	DatabaseType        string `mapstructure:"database_type"`
 	CcdbConnection      string `mapstructure:"ccdb_connection"`
 	UaadbConnection     string `mapstructure:"uaadb_connection"`
 	ResultsFolder       string `mapstructure:"results_folder"`
@@ -99,6 +103,7 @@ func LoadConfig(testConfig *Config) {
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
 	viper.SetDefault("results_folder", "../../test-results")
 	viper.SetDefault("test_resource_prefix", "perf")
+	viper.SetDefault("database_type", PsqlDb)
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("error loading config: %s", err.Error())
@@ -106,5 +111,9 @@ func LoadConfig(testConfig *Config) {
 	err = viper.Unmarshal(testConfig)
 	if err != nil {
 		log.Fatalf("error parsing config: %s", err.Error())
+	}
+
+	if testConfig.DatabaseType != PsqlDb && testConfig.DatabaseType != MysqlDb {
+		t.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
 	}
 }
