@@ -34,12 +34,13 @@ type Measurement struct {
 	Units         string      `json:"Units"`
 }
 
-func NewJsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64, testSuiteName string) *JsonReporter {
+func NewJsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64, testSuiteName string, ccdbVersion string) *JsonReporter {
 	return &JsonReporter{
 		testSuiteName:       testSuiteName,
 		outputFile:          outputFile,
 		CfDeploymentVersion: cfDeploymentVersion,
 		CapiVersion:         CapiVersion,
+		CCDBVersion:         ccdbVersion,
 		Timestamp:           timestamp,
 		Measurements:        map[string]map[string]Measurement{},
 	}

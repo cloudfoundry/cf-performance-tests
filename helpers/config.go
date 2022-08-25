@@ -94,7 +94,7 @@ func ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonReport
 	}
 
 	timestamp := time.Now().Unix()
-	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName)
+	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName, testConfig.DatabaseType)
 }
 
 func LoadConfig(testConfig *Config) {
@@ -114,6 +114,6 @@ func LoadConfig(testConfig *Config) {
 	}
 
 	if testConfig.DatabaseType != PsqlDb && testConfig.DatabaseType != MysqlDb {
-		t.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
+		log.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
 	}
 }
