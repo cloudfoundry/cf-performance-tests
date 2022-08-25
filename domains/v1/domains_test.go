@@ -21,7 +21,7 @@ var _ = Describe("domains", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/domains", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -34,7 +34,7 @@ var _ = Describe("domains", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/domains", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -47,7 +47,7 @@ var _ = Describe("domains", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration(fmt.Sprintf("GET /v3/domains"), func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
+						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -66,7 +66,7 @@ var _ = Describe("domains", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -83,7 +83,7 @@ var _ = Describe("domains", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -106,7 +106,7 @@ var _ = Describe("domains", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -120,7 +120,7 @@ var _ = Describe("domains", func() {
 					experiment.MeasureDuration("PATCH /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 							data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -137,7 +137,7 @@ var _ = Describe("domains", func() {
 							Expect(domainGUIDs).NotTo(BeNil())
 							domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
 
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
 
 							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
@@ -158,7 +158,7 @@ var _ = Describe("domains", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/domains/:guid", func() {
 						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})

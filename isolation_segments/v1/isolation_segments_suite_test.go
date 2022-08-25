@@ -75,7 +75,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Isolation segments test suite", func(report types.Report) {
-	helpers.V2GenerateReports(helpers.V2ConfigureJsonReporter(&testConfig, "isolationSegments"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "isolationSegments"), report)
 })
 
 func TestIsolationSegments(t *testing.T) {

@@ -23,7 +23,7 @@ var _ = Describe("isolation segments", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET isolation_segments", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/isolation_segments")
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/isolation_segments")
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -36,7 +36,7 @@ var _ = Describe("isolation segments", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/isolation_segments", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/isolation_segments")
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/isolation_segments")
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -49,7 +49,7 @@ var _ = Describe("isolation segments", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration(fmt.Sprintf("GET /v3/isolation_segments"), func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize))
+						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -68,7 +68,7 @@ var _ = Describe("isolation segments", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID))
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -85,7 +85,7 @@ var _ = Describe("isolation segments", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID))
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -108,7 +108,7 @@ var _ = Describe("isolation segments", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/isolation_segments/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -122,7 +122,7 @@ var _ = Describe("isolation segments", func() {
 					experiment.MeasureDuration("PATCH /v3/isolation_segments/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 							data := `{ "metadata": { "annotations": { "test": "PATCH /v3/isolation_segments/:guid" } } }`
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -141,7 +141,7 @@ var _ = Describe("isolation segments", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/isolation_segments/:guid", func() {
 						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})

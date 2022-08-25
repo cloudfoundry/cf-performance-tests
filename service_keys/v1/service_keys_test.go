@@ -34,7 +34,7 @@ var _ = Describe("service keys", func() {
 								serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
 								data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
 
-								exitCode, body := helpers.V2TimeCFCurlReturning(testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
+								exitCode, body := helpers.TimeCFCurlReturning(testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
 								Expect(exitCode).To(Equal(22))
 								Expect(body).To(ContainSubstring("You have exceeded your organization's limit for service binding of type key."))
 							})
@@ -61,7 +61,7 @@ var _ = Describe("service keys", func() {
 								serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
 								data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
 
-								exitCode, body := helpers.V2TimeCFCurlReturning(testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
+								exitCode, body := helpers.TimeCFCurlReturning(testConfig.BasicTimeout, "-X", "POST", "-d", data, "/v3/service_credential_bindings")
 								Expect(exitCode).To(Equal(0))
 								Expect(body).To(ContainSubstring("202 Accepted"))
 								// Note: The created VCAP::CloudController::V3::CreateBindingAsyncJob fails, as there is no real service broker to handle it.

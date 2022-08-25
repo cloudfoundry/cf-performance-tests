@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/spf13/viper"
@@ -81,33 +80,7 @@ func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t 
 func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
 func (config Config) GetAddExistingUserToExistingSpace() bool        { return false }
 
-func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName string) *JsonReporter {
-	viper.SetConfigName("config")
-	viper.AddConfigPath("../../")
-	viper.AddConfigPath("$HOME/.cf-performance-tests")
-	viper.SetDefault("results_folder", "../../test-results")
-	viper.SetDefault("test_resource_prefix", "perf")
-	err := viper.ReadInConfig()
-	if err != nil {
-		t.Fatalf("error loading config: %s", err.Error())
-	}
-
-	err = viper.Unmarshal(testConfig)
-	if err != nil {
-		t.Fatalf("error parsing config: %s", err.Error())
-	}
-
-	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
-	err = os.MkdirAll(resultsFolder, os.ModePerm)
-	if err != nil {
-		t.Fatalf("Cannot create Directory: %s", err.Error())
-	}
-
-	timestamp := time.Now().Unix()
-	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
-}
-
-func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *V2JsonReporter {
+func ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonReporter {
 	err := viper.ReadInConfig()
 
 	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
@@ -117,7 +90,7 @@ func V2ConfigureJsonReporter(testConfig *Config, testSuiteName string) *V2JsonRe
 	}
 
 	timestamp := time.Now().Unix()
-	return NewV2JsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName)
+	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName)
 }
 
 func LoadConfig(testConfig *Config) {

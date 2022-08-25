@@ -81,7 +81,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Security groups test suite", func(report types.Report) {
-	helpers.V2GenerateReports(helpers.V2ConfigureJsonReporter(&testConfig, "Security groups"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "Security groups"), report)
 })
 
 func TestSecurityGroups(t *testing.T) {

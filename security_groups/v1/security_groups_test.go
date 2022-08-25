@@ -24,7 +24,7 @@ var _ = Describe("security groups", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/security_groups", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/security_groups")
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/security_groups")
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -37,7 +37,7 @@ var _ = Describe("security groups", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration("GET /v3/security_groups", func() {
 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.BasicTimeout, "/v3/security_groups")
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/security_groups")
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -50,7 +50,7 @@ var _ = Describe("security groups", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration(fmt.Sprintf("GET /v3/security_groups"), func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize))
+						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -68,7 +68,7 @@ var _ = Describe("security groups", func() {
 			experiment.Sample(func(idx int) {
 				experiment.MeasureDuration(fmt.Sprintf("GET /v3/security_groups"), func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-						helpers.V2TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")))
+						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")))
 					})
 				})
 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -91,7 +91,7 @@ var _ = Describe("security groups", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -105,7 +105,7 @@ var _ = Describe("security groups", func() {
 					experiment.MeasureDuration("PATCH /v3/security_groups/:guid", func() {
 						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 							data := fmt.Sprintf(`{"name":"%s-updated-security-group-%s"}`, testConfig.GetNamePrefix(), securityGroupGUID)
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
@@ -122,7 +122,7 @@ var _ = Describe("security groups", func() {
 							Expect(securityGroupGUIDs).NotTo(BeNil())
 							securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
 
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 
 							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
@@ -143,7 +143,7 @@ var _ = Describe("security groups", func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
 						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-							helpers.V2TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})

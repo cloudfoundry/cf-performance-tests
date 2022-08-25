@@ -136,7 +136,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Service keys test suite", func(report types.Report) {
-	helpers.V2GenerateReports(helpers.V2ConfigureJsonReporter(&testConfig, "Service keys"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "Service keys"), report)
 })
 
 func TestServiceKeys(t *testing.T) {
