@@ -47,7 +47,7 @@ var _ = Describe("isolation segments", func() {
 			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration(fmt.Sprintf("GET /v3/isolation_segments"), func() {
+				experiment.MeasureDuration("GET /v3/isolation_segments", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize))
 					})

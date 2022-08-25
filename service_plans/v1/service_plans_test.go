@@ -17,7 +17,7 @@ import (
 var _ = Describe("service plans", func() {
 	Describe("GET /v3/service_plans", func() {
 		Context("as admin", func() {
-			It("list all /v3/service_plans as admin efficiently", func() {
+			It("lists all /v3/service_plans as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 

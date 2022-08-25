@@ -48,7 +48,7 @@ var _ = Describe("security groups", func() {
 			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration(fmt.Sprintf("GET /v3/security_groups"), func() {
+				experiment.MeasureDuration("GET /v3/security_groups", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize))
 					})
@@ -66,7 +66,7 @@ var _ = Describe("security groups", func() {
 			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration(fmt.Sprintf("GET /v3/security_groups"), func() {
+				experiment.MeasureDuration("GET /v3/security_groups", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")))
 					})

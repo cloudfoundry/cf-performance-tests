@@ -45,7 +45,7 @@ var _ = Describe("domains", func() {
 			AddReportEntry(experiment.Name, experiment)
 
 			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration(fmt.Sprintf("GET /v3/domains"), func() {
+				experiment.MeasureDuration("GET /v3/domains", func() {
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
 					})
