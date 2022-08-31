@@ -20,39 +20,39 @@ var _ = Describe("isolation segments", func() {
 			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET isolation_segments", func() {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET isolation_segments", func() {
 						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/isolation_segments")
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 
 		It("gets /v3/isolation_segments as a regular user efficiently", func() {
 			experiment := gmeasure.NewExperiment("as user")
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/isolation_segments", func() {
-					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/isolation_segments", func() {
 						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/isolation_segments")
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 
 		It(fmt.Sprintf("gets /v3/isolation_segments as admin with page size %d efficiently", testConfig.LargePageSize), func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/isolation_segments", func() {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/isolation_segments", func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/isolation_segments?per_page=%d", testConfig.LargePageSize))
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 	})
 
@@ -65,13 +65,13 @@ var _ = Describe("isolation segments", func() {
 			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
 						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID))
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 
 		It("gets /v3/isolation_segments/:guid/relationships/organizations as regular user efficiently", func() {
@@ -82,13 +82,13 @@ var _ = Describe("isolation segments", func() {
 			experiment := gmeasure.NewExperiment("as regular user")
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
-					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/isolation_segments/:guid/relationships/organizations", func() {
 						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s/relationships/organizations", isolationSegmentGUID))
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 	})
 
@@ -105,27 +105,27 @@ var _ = Describe("isolation segments", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/isolation_segments/:guid", func() {
-						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/isolation_segments/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 
 			It("patches /v3/isolation_segments/:guid as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("PATCH /v3/isolation_segments/:guid", func() {
-						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("PATCH /v3/isolation_segments/:guid", func() {
 							data := `{ "metadata": { "annotations": { "test": "PATCH /v3/isolation_segments/:guid" } } }`
 							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 		})
 
@@ -138,13 +138,13 @@ var _ = Describe("isolation segments", func() {
 				experiment := gmeasure.NewExperiment("as regular user")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/isolation_segments/:guid", func() {
-						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/isolation_segments/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/isolation_segments/%s", isolationSegmentGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 		})
 	})

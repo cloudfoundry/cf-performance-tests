@@ -2,12 +2,13 @@ package domains
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
 
-	// . "github.com/onsi/gomega"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gmeasure"
 )
 
@@ -54,115 +55,115 @@ var _ = Describe("domains", func() {
 		})
 	})
 
-	// Describe("GET /v3/organizations/:guid/domains", func() {
-	// 	It("gets /v3/organizations/:guid/domains as admin efficiently", func() {
-	// 		orgGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/organizations")
-	// 		Expect(orgGUIDs).NotTo(BeNil())
-	// 		orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
+	Describe("GET /v3/organizations/:guid/domains", func() {
+		It("gets /v3/organizations/:guid/domains as admin efficiently", func() {
+			orgGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/organizations")
+			Expect(orgGUIDs).NotTo(BeNil())
+			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 
-	// 		experiment := gmeasure.NewExperiment("as admin")
-	// 		AddReportEntry(experiment.Name, experiment)
+			experiment := gmeasure.NewExperiment("as admin")
+			AddReportEntry(experiment.Name, experiment)
 
-	// 		experiment.Sample(func(idx int) {
-	// 			experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
-	// 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-	// 					helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
-	// 				})
-	// 			})
-	// 		}, gmeasure.SamplingConfig{N: testConfig.Samples})
-	// 	})
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
 
-	// 	It("gets /v3/organizations/:guid/domains as regular user efficiently", func() {
-	// 		orgGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/organizations")
-	// 		Expect(orgGUIDs).NotTo(BeNil())
-	// 		orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
+		It("gets /v3/organizations/:guid/domains as regular user efficiently", func() {
+			orgGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/organizations")
+			Expect(orgGUIDs).NotTo(BeNil())
+			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
 
-	// 		experiment := gmeasure.NewExperiment("as regular user")
-	// 		AddReportEntry(experiment.Name, experiment)
+			experiment := gmeasure.NewExperiment("as regular user")
+			AddReportEntry(experiment.Name, experiment)
 
-	// 		experiment.Sample(func(idx int) {
-	// 			experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
-	// 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-	// 					helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
-	// 				})
-	// 			})
-	// 		}, gmeasure.SamplingConfig{N: testConfig.Samples})
-	// 	})
-	// })
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+	})
 
-	// Describe("individually", func() {
-	// 	Describe("as admin", func() {
-	// 		var domainGUID string
-	// 		BeforeEach(func() {
-	// 			domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
-	// 			Expect(domainGUIDs).NotTo(BeNil())
-	// 			domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
-	// 		})
+	Describe("individually", func() {
+		Describe("as admin", func() {
+			var domainGUID string
+			BeforeEach(func() {
+				domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
+				Expect(domainGUIDs).NotTo(BeNil())
+				domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
+			})
 
-	// 		It("gets /v3/domains/:guid as admin efficiently", func() {
-	// 			experiment := gmeasure.NewExperiment("as admin")
-	// 			AddReportEntry(experiment.Name, experiment)
+			It("gets /v3/domains/:guid as admin efficiently", func() {
+				experiment := gmeasure.NewExperiment("as admin")
+				AddReportEntry(experiment.Name, experiment)
 
-	// 			experiment.Sample(func(idx int) {
-	// 				experiment.MeasureDuration("GET /v3/domains/:guid", func() {
-	// 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-	// 						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
-	// 					})
-	// 				})
-	// 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
-	// 		})
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/domains/:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
 
-	// 		It("patches /v3/domains/:guid as admin efficiently", func() {
-	// 			experiment := gmeasure.NewExperiment("as admin")
-	// 			AddReportEntry(experiment.Name, experiment)
+			It("patches /v3/domains/:guid as admin efficiently", func() {
+				experiment := gmeasure.NewExperiment("as admin")
+				AddReportEntry(experiment.Name, experiment)
 
-	// 			experiment.Sample(func(idx int) {
-	// 				experiment.MeasureDuration("PATCH /v3/domains/:guid", func() {
-	// 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-	// 						data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
-	// 						helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
-	// 					})
-	// 				})
-	// 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
-	// 		})
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("PATCH /v3/domains/:guid", func() {
+							data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
 
-	// 		It("deletes /v3/domains/:guid as admin efficiently", func() {
-	// 			experiment := gmeasure.NewExperiment("as admin")
-	// 			AddReportEntry(experiment.Name, experiment)
+			It("deletes /v3/domains/:guid as admin efficiently", func() {
+				experiment := gmeasure.NewExperiment("as admin")
+				AddReportEntry(experiment.Name, experiment)
 
-	// 			experiment.Sample(func(idx int) {
-	// 				experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
-	// 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-	// 						domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
-	// 						Expect(domainGUIDs).NotTo(BeNil())
-	// 						domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
+							domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
+							Expect(domainGUIDs).NotTo(BeNil())
+							domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
 
-	// 						helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
 
-	// 						helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
-	// 					})
-	// 				})
-	// 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
-	// 		})
-	// 	})
+							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
+		})
 
-	// 	Describe("as regular user", func() {
-	// 		It("gets /v3/domains/:guid as regular user efficiently", func() {
-	// 			domainGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/domains")
-	// 			Expect(domainGUIDs).NotTo(BeNil())
-	// 			domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
+		Describe("as regular user", func() {
+			It("gets /v3/domains/:guid as regular user efficiently", func() {
+				domainGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/domains")
+				Expect(domainGUIDs).NotTo(BeNil())
+				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
 
-	// 			experiment := gmeasure.NewExperiment("as regular user")
-	// 			AddReportEntry(experiment.Name, experiment)
+				experiment := gmeasure.NewExperiment("as regular user")
+				AddReportEntry(experiment.Name, experiment)
 
-	// 			experiment.Sample(func(idx int) {
-	// 				experiment.MeasureDuration("GET /v3/domains/:guid", func() {
-	// 					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-	// 						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
-	// 					})
-	// 				})
-	// 			}, gmeasure.SamplingConfig{N: testConfig.Samples})
-	// 		})
-	// 	})
-	// })
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/domains/:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
+		})
+	})
 })

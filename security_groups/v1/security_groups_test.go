@@ -21,39 +21,39 @@ var _ = Describe("security groups", func() {
 			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/security_groups", func() {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/security_groups", func() {
 						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/security_groups")
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 
 		It("gets /v3/security_groups as a regular user efficiently", func() {
 			experiment := gmeasure.NewExperiment("as user")
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/security_groups", func() {
-					workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/security_groups", func() {
 						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/security_groups")
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 
 		It(fmt.Sprintf("gets /v3/security_groups as admin with page size %d efficiently", testConfig.LargePageSize), func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/security_groups", func() {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/security_groups", func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?per_page=%d", testConfig.LargePageSize))
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 
 		It(fmt.Sprintf("gets /v3/security_groups as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func() {
@@ -65,13 +65,13 @@ var _ = Describe("security groups", func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with space filter containing %d spaces", testConfig.LargeElementsFilter))
 			AddReportEntry(experiment.Name, experiment)
 
-			experiment.Sample(func(idx int) {
-				experiment.MeasureDuration("GET /v3/security_groups", func() {
-					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/security_groups", func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")))
 					})
-				})
-			}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 	})
 
@@ -88,36 +88,36 @@ var _ = Describe("security groups", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
-						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 
 			It("patches /v3/security_groups/:guid as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("PATCH /v3/security_groups/:guid", func() {
-						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("PATCH /v3/security_groups/:guid", func() {
 							data := fmt.Sprintf(`{"name":"%s-updated-security-group-%s"}`, testConfig.GetNamePrefix(), securityGroupGUID)
 							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 
 			It("deletes /v3/security_groups/:guid as admin efficiently", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("DELETE /v3/security_groups/:guid", func() {
-						workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("DELETE /v3/security_groups/:guid", func() {
 							securityGroupGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/security_groups")
 							Expect(securityGroupGUIDs).NotTo(BeNil())
 							securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
@@ -126,8 +126,8 @@ var _ = Describe("security groups", func() {
 
 							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 		})
 
@@ -140,13 +140,13 @@ var _ = Describe("security groups", func() {
 				experiment := gmeasure.NewExperiment("as regular user")
 				AddReportEntry(experiment.Name, experiment)
 
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
-						workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
 			})
 		})
 	})

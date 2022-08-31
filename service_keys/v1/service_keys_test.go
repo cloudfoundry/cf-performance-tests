@@ -28,9 +28,9 @@ var _ = Describe("service keys", func() {
 					experiment := gmeasure.NewExperiment("as admin")
 					AddReportEntry(experiment.Name, experiment)
 
-					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("POST /v3/service_credential_bindings", func() {
-							workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+						experiment.Sample(func(idx int) {
+							experiment.MeasureDuration("POST /v3/service_credential_bindings", func() {
 								serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
 								data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
 
@@ -38,8 +38,8 @@ var _ = Describe("service keys", func() {
 								Expect(exitCode).To(Equal(22))
 								Expect(body).To(ContainSubstring("You have exceeded your organization's limit for service binding of type key."))
 							})
-						})
-					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+						}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					})
 				})
 			})
 
@@ -55,9 +55,9 @@ var _ = Describe("service keys", func() {
 					experiment := gmeasure.NewExperiment("as admin")
 					AddReportEntry(experiment.Name, experiment)
 
-					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("POST /v3/service_credential_bindings", func() {
-							workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+						experiment.Sample(func(idx int) {
+							experiment.MeasureDuration("POST /v3/service_credential_bindings", func() {
 								serviceKeyName := fmt.Sprintf("%s-service-key-%s", testConfig.GetNamePrefix(), uuid.NewString())
 								data := fmt.Sprintf(`{"type":"key","name":"%s","relationships":{"service_instance":{"data":{"guid":"%s"}}}}`, serviceKeyName, serviceInstanceGUID)
 
@@ -66,8 +66,8 @@ var _ = Describe("service keys", func() {
 								Expect(body).To(ContainSubstring("202 Accepted"))
 								// Note: The created VCAP::CloudController::V3::CreateBindingAsyncJob fails, as there is no real service broker to handle it.
 							})
-						})
-					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+						}, gmeasure.SamplingConfig{N: testConfig.Samples})
+					})
 				})
 			})
 		})
