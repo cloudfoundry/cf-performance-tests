@@ -16,46 +16,42 @@ import (
 
 var _ = Describe("service plans", func() {
 	Describe("GET /v3/service_plans", func() {
-		Context("as admin", func() {
-			It("lists all /v3/service_plans as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
-				AddReportEntry(experiment.Name, experiment)
+		It("lists all /v3/service_plans as admin", func() {
+			experiment := gmeasure.NewExperiment("as admin")
+			AddReportEntry(experiment.Name, experiment)
 
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("GET /v3/service_plans", func() {
-							helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
-						})
-					}, gmeasure.SamplingConfig{N: testConfig.Samples})
-				})
-			})
-
-			It("list all /v3/service_plans as admin efficiently with large page size", func() {
-				experiment := gmeasure.NewExperiment(fmt.Sprintf("list with page size %d", testConfig.LargePageSize))
-				AddReportEntry(experiment.Name, experiment)
-
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("GET /v3/service_plans", func() {
-							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans?per_page=%d", testConfig.LargePageSize))
-						})
-					}, gmeasure.SamplingConfig{N: testConfig.Samples})
-				})
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
 		})
 
-		Context("as regular user", func() {
-			It("lists all /v3/service_plans as a regular user efficiently", func() {
-				experiment := gmeasure.NewExperiment("as user")
-				AddReportEntry(experiment.Name, experiment)
+		It("list all /v3/service_plans as admin with large page size", func() {
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("list with page size %d as admin", testConfig.LargePageSize))
+			AddReportEntry(experiment.Name, experiment)
 
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("GET /v3/service_plans", func() {
-							helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
-						})
-					}, gmeasure.SamplingConfig{N: testConfig.Samples})
-				})
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans?per_page=%d", testConfig.LargePageSize))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+
+		It("lists all /v3/service_plans as regular user", func() {
+			experiment := gmeasure.NewExperiment("as user")
+			AddReportEntry(experiment.Name, experiment)
+
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
 		})
 	})
@@ -69,7 +65,7 @@ var _ = Describe("service plans", func() {
 				servicePlanGUID = servicePlanGUIDs[rand.Intn(len(servicePlanGUIDs))]
 			})
 
-			It("shows one /v3/service_plans/:guid as admin efficiently", func() {
+			It("shows one /v3/service_plans/:guid as admin", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
@@ -88,7 +84,7 @@ var _ = Describe("service plans", func() {
 				servicePlanGUID = getRandomLimitedServicePlanGuid()
 			})
 
-			It("shows one /v3/service_plans/:guid as user efficiently", func() {
+			It("shows one /v3/service_plans/:guid as user", func() {
 				experiment := gmeasure.NewExperiment("as user")
 				AddReportEntry(experiment.Name, experiment)
 
@@ -110,7 +106,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		Context("as admin", func() {
-			It("shows one /v3/service_plans/:guid/visibility as admin efficiently", func() {
+			It("shows one /v3/service_plans/:guid/visibility as admin", func() {
 				experiment := gmeasure.NewExperiment("as admin")
 				AddReportEntry(experiment.Name, experiment)
 
@@ -125,7 +121,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		Context("as regular user", func() {
-			It("shows one /v3/service_plans/:guid/visibility as user efficiently", func() {
+			It("shows one /v3/service_plans/:guid/visibility as user", func() {
 				experiment := gmeasure.NewExperiment("as user")
 				AddReportEntry(experiment.Name, experiment)
 

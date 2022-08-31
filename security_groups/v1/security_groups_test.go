@@ -17,7 +17,7 @@ import (
 var _ = Describe("security groups", func() {
 	Describe("GET /v3/security_groups", func() {
 
-		It("gets /v3/security_groups as admin efficiently", func() {
+		It("as admin", func() {
 			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment)
 
@@ -30,7 +30,7 @@ var _ = Describe("security groups", func() {
 			})
 		})
 
-		It("gets /v3/security_groups as a regular user efficiently", func() {
+		It("as regular user", func() {
 			experiment := gmeasure.NewExperiment("as user")
 			AddReportEntry(experiment.Name, experiment)
 
@@ -43,7 +43,7 @@ var _ = Describe("security groups", func() {
 			})
 		})
 
-		It(fmt.Sprintf("gets /v3/security_groups as admin with page size %d efficiently", testConfig.LargePageSize), func() {
+		It(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
@@ -56,7 +56,7 @@ var _ = Describe("security groups", func() {
 			})
 		})
 
-		It(fmt.Sprintf("gets /v3/security_groups as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func() {
+		It(fmt.Sprintf("as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func() {
 			spaceGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/spaces?per_page=%d&label_selector=%s", testConfig.LargeElementsFilter, testConfig.TestResourcePrefix))
 			Expect(spaceGUIDs).NotTo(BeNil())
 			Expect(len(spaceGUIDs)).To(Equal(testConfig.LargeElementsFilter))
@@ -84,8 +84,8 @@ var _ = Describe("security groups", func() {
 				securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
 			})
 
-			It("gets /v3/security_groups/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+			It("gets /v3/security_groups/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -97,8 +97,8 @@ var _ = Describe("security groups", func() {
 				})
 			})
 
-			It("patches /v3/security_groups/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+			It("patches /v3/security_groups/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -111,8 +111,8 @@ var _ = Describe("security groups", func() {
 				})
 			})
 
-			It("deletes /v3/security_groups/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+			It("deletes /v3/security_groups/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -132,12 +132,12 @@ var _ = Describe("security groups", func() {
 		})
 
 		Describe("as regular user", func() {
-			It("gets /v3/security_groups/:guid as regular user efficiently", func() {
+			It("gets /v3/security_groups/:guid as regular user", func() {
 				securityGroupGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/security_groups")
 				Expect(securityGroupGUIDs).NotTo(BeNil())
 				securityGroupGUID := securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
 
-				experiment := gmeasure.NewExperiment("as regular user")
+				experiment := gmeasure.NewExperiment("individually::as regular user")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {

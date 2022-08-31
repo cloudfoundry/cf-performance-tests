@@ -15,7 +15,7 @@ import (
 var _ = Describe("domains", func() {
 	Describe("GET /v3/domains", func() {
 
-		It("gets /v3/domains as admin efficiently", func() {
+		It("as admin", func() {
 			experiment := gmeasure.NewExperiment("as admin")
 			AddReportEntry(experiment.Name, experiment)
 
@@ -28,7 +28,7 @@ var _ = Describe("domains", func() {
 			})
 		})
 
-		It("gets /v3/domains as a regular user efficiently", func() {
+		It("as regular user", func() {
 			experiment := gmeasure.NewExperiment("as user")
 			AddReportEntry(experiment.Name, experiment)
 
@@ -41,7 +41,7 @@ var _ = Describe("domains", func() {
 			})
 		})
 
-		It(fmt.Sprintf("gets /v3/domains as admin with page size %d efficiently", testConfig.LargePageSize), func() {
+		It(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
@@ -56,7 +56,7 @@ var _ = Describe("domains", func() {
 	})
 
 	Describe("GET /v3/organizations/:guid/domains", func() {
-		It("gets /v3/organizations/:guid/domains as admin efficiently", func() {
+		It("as admin", func() {
 			orgGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/organizations")
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
@@ -73,7 +73,7 @@ var _ = Describe("domains", func() {
 			})
 		})
 
-		It("gets /v3/organizations/:guid/domains as regular user efficiently", func() {
+		It("as regular user", func() {
 			orgGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/organizations")
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
@@ -100,8 +100,8 @@ var _ = Describe("domains", func() {
 				domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
 			})
 
-			It("gets /v3/domains/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+			It("gets /v3/domains/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -113,8 +113,8 @@ var _ = Describe("domains", func() {
 				})
 			})
 
-			It("patches /v3/domains/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+			It("patches /v3/domains/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -127,8 +127,8 @@ var _ = Describe("domains", func() {
 				})
 			})
 
-			It("deletes /v3/domains/:guid as admin efficiently", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+			It("deletes /v3/domains/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -148,12 +148,12 @@ var _ = Describe("domains", func() {
 		})
 
 		Describe("as regular user", func() {
-			It("gets /v3/domains/:guid as regular user efficiently", func() {
+			It("gets /v3/domains/:guid as regular user", func() {
 				domainGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/domains")
 				Expect(domainGUIDs).NotTo(BeNil())
 				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
 
-				experiment := gmeasure.NewExperiment("as regular user")
+				experiment := gmeasure.NewExperiment("individually::as regular user")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {

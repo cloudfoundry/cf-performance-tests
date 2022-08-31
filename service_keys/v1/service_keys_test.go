@@ -24,8 +24,8 @@ var _ = Describe("service keys", func() {
 					serviceInstanceGUID = serviceInstanceGUIDs[rand.Intn(len(serviceInstanceGUIDs))]
 				})
 
-				It("posts /v3/service_credential_bindings as admin efficiently", func() {
-					experiment := gmeasure.NewExperiment("as admin")
+				It("posts /v3/service_credential_bindings as admin  ", func() {
+					experiment := gmeasure.NewExperiment("individually::as admin")
 					AddReportEntry(experiment.Name, experiment)
 
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -51,8 +51,8 @@ var _ = Describe("service keys", func() {
 					serviceInstanceGUID = serviceInstanceGUIDs[rand.Intn(len(serviceInstanceGUIDs))]
 				})
 
-				It("posts /v3/service_credential_bindings as admin efficiently", func() {
-					experiment := gmeasure.NewExperiment("as admin")
+				It("posts /v3/service_credential_bindings as admin  ", func() {
+					experiment := gmeasure.NewExperiment("individually::as admin")
 					AddReportEntry(experiment.Name, experiment)
 
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
