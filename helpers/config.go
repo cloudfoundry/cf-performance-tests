@@ -84,7 +84,7 @@ func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t 
 func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
 func (config Config) GetAddExistingUserToExistingSpace() bool        { return false }
 
-func ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonReporter {
+func ConfigureJsonReporter(testConfig *Config, testSuiteName string, testHeadlineName string) *JsonReporter {
 	err := viper.ReadInConfig()
 
 	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
@@ -94,7 +94,7 @@ func ConfigureJsonReporter(testConfig *Config, testSuiteName string) *JsonReport
 	}
 
 	timestamp := time.Now().Unix()
-	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName, testConfig.DatabaseType)
+	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testHeadlineName, testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName, testConfig.DatabaseType)
 }
 
 func LoadConfig(testConfig *Config) {

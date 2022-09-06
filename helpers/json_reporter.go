@@ -11,6 +11,7 @@ import (
 
 type JsonReporter struct {
 	testSuiteName       string
+	testHeadlineName    string
 	Measurements        map[string]map[string]Measurement `json:"measurements"`
 	outputFile          string
 	CfDeploymentVersion string `json:"cfDeploymentVersion"`
@@ -34,9 +35,10 @@ type Measurement struct {
 	Units         string      `json:"Units"`
 }
 
-func NewJsonReporter(outputFile string, cfDeploymentVersion string, CapiVersion string, timestamp int64, testSuiteName string, ccdbVersion string) *JsonReporter {
+func NewJsonReporter(outputFile string, testHeadlineName string, cfDeploymentVersion string, CapiVersion string, timestamp int64, testSuiteName string, ccdbVersion string) *JsonReporter {
 	return &JsonReporter{
 		testSuiteName:       testSuiteName,
+		testHeadlineName:    testHeadlineName,
 		outputFile:          outputFile,
 		CfDeploymentVersion: cfDeploymentVersion,
 		CapiVersion:         CapiVersion,
@@ -86,7 +88,7 @@ func GenerateReports(reporter *JsonReporter, report types.Report) {
 			mp["request time"] = m
 
 			// Add map to overall reporter structure
-			reporter.Measurements[fmt.Sprintf("%s::%s::%s", reporter.testSuiteName, e.Measurements[0].Name, e.Name)] = mp
+			reporter.Measurements[fmt.Sprintf("%s::%s", reporter.testHeadlineName, e.Name)] = mp
 		}
 	}
 
