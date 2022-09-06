@@ -104,7 +104,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Service plans test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "service-plans"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "service-plans", "service plans"), report)
 })
 
 func TestServicePlans(t *testing.T) {

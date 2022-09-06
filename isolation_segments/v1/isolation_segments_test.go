@@ -17,7 +17,7 @@ var _ = Describe("isolation segments", func() {
 	Describe("GET /v3/isolation_segments", func() {
 
 		It("as admin", func() {
-			experiment := gmeasure.NewExperiment("as admin")
+			experiment := gmeasure.NewExperiment("GET /v3/isolation_segments::as admin")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -30,7 +30,7 @@ var _ = Describe("isolation segments", func() {
 		})
 
 		It("as regular user", func() {
-			experiment := gmeasure.NewExperiment("as user")
+			experiment := gmeasure.NewExperiment("GET /v3/isolation_segments::as regular user")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -43,7 +43,7 @@ var _ = Describe("isolation segments", func() {
 		})
 
 		It(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/isolation_segments::as admin with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -62,7 +62,7 @@ var _ = Describe("isolation segments", func() {
 			Expect(isolationSegmentGUIDs).NotTo(BeNil())
 			isolationSegmentGUID := isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 
-			experiment := gmeasure.NewExperiment("as admin")
+			experiment := gmeasure.NewExperiment("GET /v3/isolation_segments/:guid/relationships/organizations::as admin")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -79,7 +79,7 @@ var _ = Describe("isolation segments", func() {
 			Expect(isolationSegmentGUIDs).NotTo(BeNil())
 			isolationSegmentGUID := isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 
-			experiment := gmeasure.NewExperiment("as regular user")
+			experiment := gmeasure.NewExperiment("GET /v3/isolation_segments/:guid/relationships/organizations::as regular user")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -102,7 +102,7 @@ var _ = Describe("isolation segments", func() {
 			})
 
 			It("gets /v3/isolation_segments/:guid as admin", func() {
-				experiment := gmeasure.NewExperiment("individually::as admin")
+				experiment := gmeasure.NewExperiment("individually::as admin::GET /v3/isolation_segments/:guid")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -115,7 +115,7 @@ var _ = Describe("isolation segments", func() {
 			})
 
 			It("patches /v3/isolation_segments/:guid as admin", func() {
-				experiment := gmeasure.NewExperiment("individually::as admin")
+				experiment := gmeasure.NewExperiment("individually::as admin::PATCH /v3/isolation_segments/:guid")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -135,7 +135,7 @@ var _ = Describe("isolation segments", func() {
 				Expect(isolationSegmentGUIDs).NotTo(BeNil())
 				isolationSegmentGUID := isolationSegmentGUIDs[rand.Intn(len(isolationSegmentGUIDs))]
 
-				experiment := gmeasure.NewExperiment("individually::as regular user")
+				experiment := gmeasure.NewExperiment("individually::as regular user::GET /v3/isolation_segments/:guid")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {

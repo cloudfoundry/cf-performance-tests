@@ -25,7 +25,7 @@ var _ = Describe("service keys", func() {
 				})
 
 				It("posts /v3/service_credential_bindings as admin  ", func() {
-					experiment := gmeasure.NewExperiment("individually::as admin")
+					experiment := gmeasure.NewExperiment("individually::as admin::with exhausted service keys quota::POST /v3/service_credential_bindings")
 					AddReportEntry(experiment.Name, experiment)
 
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -52,7 +52,8 @@ var _ = Describe("service keys", func() {
 				})
 
 				It("posts /v3/service_credential_bindings as admin  ", func() {
-					experiment := gmeasure.NewExperiment("individually::as admin")
+					experiment := gmeasure.NewExperiment("individually::as admin::with unlimited service keys quota::POST /v3/service_credential_bindings")
+
 					AddReportEntry(experiment.Name, experiment)
 
 					workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {

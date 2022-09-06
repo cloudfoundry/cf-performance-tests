@@ -74,7 +74,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Domains test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "domains"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "domains", "domains"), report)
 })
 
 func TestDomains(t *testing.T) {

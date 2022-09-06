@@ -17,7 +17,7 @@ import (
 var _ = Describe("service plans", func() {
 	Describe("GET /v3/service_plans", func() {
 		It("lists all /v3/service_plans as admin", func() {
-			experiment := gmeasure.NewExperiment("as admin")
+			experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as admin::list all")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -30,7 +30,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		It("list all /v3/service_plans as admin with large page size", func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("list with page size %d as admin", testConfig.LargePageSize))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans/:guid::as admin::list with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -43,7 +43,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		It("lists all /v3/service_plans as regular user", func() {
-			experiment := gmeasure.NewExperiment("as user")
+			experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular user::list all")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -66,7 +66,7 @@ var _ = Describe("service plans", func() {
 			})
 
 			It("shows one /v3/service_plans/:guid as admin", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as admin::show one")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -85,7 +85,7 @@ var _ = Describe("service plans", func() {
 			})
 
 			It("shows one /v3/service_plans/:guid as user", func() {
-				experiment := gmeasure.NewExperiment("as user")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular::show one")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -107,7 +107,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as admin", func() {
 			It("shows one /v3/service_plans/:guid/visibility as admin", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid/visibility::as admin::show visibility")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -122,7 +122,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as regular user", func() {
 			It("shows one /v3/service_plans/:guid/visibility as user", func() {
-				experiment := gmeasure.NewExperiment("as user")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid/visibility::as regular user::show visibility")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -149,7 +149,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as admin", func() {
 			It("filters for list of service_offerings", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_offering_guids=::as admin::filter for list of service_offerings")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -163,7 +163,7 @@ var _ = Describe("service plans", func() {
 			})
 
 			It(fmt.Sprintf("filters for list of service_offerings with page size %d", testConfig.LargePageSize), func() {
-				experiment := gmeasure.NewExperiment("as admin")
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_offering_guids=::as admin::filter for list of service_offerings with page size %d", testConfig.LargePageSize))
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -180,7 +180,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as regular user", func() {
 			It("filters for list of service_offerings", func() {
-				experiment := gmeasure.NewExperiment("as user")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_offering_guids=::as regular user::filter for list of service_offerings")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -205,9 +205,10 @@ var _ = Describe("service plans", func() {
 				serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
 			}
 		})
+
 		Context("as admin", func() {
 			It("filters for list of service_instances", func() {
-				experiment := gmeasure.NewExperiment("as admin")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_instance_guids=::as admin::filter for list of service_instances")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -221,7 +222,7 @@ var _ = Describe("service plans", func() {
 			})
 
 			It(fmt.Sprintf("filters for list of service_instances with page size %d", testConfig.LargePageSize), func() {
-				experiment := gmeasure.NewExperiment("as admin")
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_instance_guids=::as admin::filter for list of service_instances with page size %d", testConfig.LargePageSize))
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -238,7 +239,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as regular user", func() {
 			It("filters for list of service_instances", func() {
-				experiment := gmeasure.NewExperiment("as user")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_instance_guids=::as regular user::filter for list of service_instances")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -252,7 +253,7 @@ var _ = Describe("service plans", func() {
 			})
 
 			It(fmt.Sprintf("filters for list of service_instances with page size %d", testConfig.LargePageSize), func() {
-				experiment := gmeasure.NewExperiment("as user")
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_instance_guids=::as regular user::filter for list of service_instances with page size %d", testConfig.LargePageSize))
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -288,7 +289,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as regular user", func() {
 			It("filters by org and space guids", func() {
-				experiment := gmeasure.NewExperiment("as user")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?organization_guids=&space_guids=::as regular user::filter by org and space guid")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
