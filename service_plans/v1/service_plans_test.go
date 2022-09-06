@@ -17,7 +17,7 @@ import (
 var _ = Describe("service plans", func() {
 	Describe("GET /v3/service_plans", func() {
 		It("lists all /v3/service_plans as admin", func() {
-			experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as admin::list all")
+			experiment := gmeasure.NewExperiment("GET /v3/service_plans::as admin::list all")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -30,7 +30,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		It("list all /v3/service_plans as admin with large page size", func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans/:guid::as admin::list with page size %d", testConfig.LargePageSize))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans::as admin::list with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
@@ -43,7 +43,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		It("lists all /v3/service_plans as regular user", func() {
-			experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular user::list all")
+			experiment := gmeasure.NewExperiment("GET /v3/service_plans::as regular user::list all")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -85,7 +85,7 @@ var _ = Describe("service plans", func() {
 			})
 
 			It("shows one /v3/service_plans/:guid as user", func() {
-				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular::show one")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular user::show one")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
@@ -289,7 +289,7 @@ var _ = Describe("service plans", func() {
 
 		Context("as regular user", func() {
 			It("filters by org and space guids", func() {
-				experiment := gmeasure.NewExperiment("GET /v3/service_plans?organization_guids=&space_guids=::as regular user::filter by org and space guid")
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?organization_guids=&space_guids=::as regular user::filter by org and space guids")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
