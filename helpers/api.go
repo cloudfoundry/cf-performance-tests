@@ -8,10 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/onsi/ginkgo"
-
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
+	"github.com/cloudfoundry/cf-test-helpers/v2/cf"
+	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gexec"
 )
@@ -95,18 +93,15 @@ func GetXRuntimeHeader(response []byte) float64 {
 	return runtime
 }
 
-func TimeCFCurl(b ginkgo.Benchmarker, timeout time.Duration, curlArguments ...string) {
-	exitCode, _ := TimeCFCurlReturning(b, timeout, curlArguments...)
+func TimeCFCurl(timeout time.Duration, curlArguments ...string) {
+	exitCode, _ := TimeCFCurlReturning(timeout, curlArguments...)
 	Expect(exitCode).To(Equal(0))
 }
 
-func TimeCFCurlReturning(b ginkgo.Benchmarker, timeout time.Duration, curlArguments ...string) (int, []byte) {
+func TimeCFCurlReturning(timeout time.Duration, curlArguments ...string) (int, []byte) {
 	var args = []string{"curl", "--fail", "-v"}
 	args = append(args, curlArguments...)
 	result := cf.Cf(args...).Wait(timeout)
-
-	runtime := GetXRuntimeHeader(result.Out.Contents())
-	b.RecordValue("request time", runtime)
 
 	return result.ExitCode(), result.Out.Contents()
 }

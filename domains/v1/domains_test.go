@@ -4,52 +4,91 @@ import (
 	"fmt"
 	"math/rand"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
+	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
+	. "github.com/onsi/ginkgo/v2"
+
+	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gmeasure"
 )
 
 var _ = Describe("domains", func() {
 	Describe("GET /v3/domains", func() {
-		Measure("as admin", func(b Benchmarker) {
+
+		It("as admin", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/domains::as admin")
+			AddReportEntry(experiment.Name, experiment)
+
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/domains")
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/domains", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
-		}, testConfig.Samples)
+		})
 
-		Measure("as regular user", func(b Benchmarker) {
+		It("as regular user", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/domains::as regular user")
+			AddReportEntry(experiment.Name, experiment)
+
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/domains")
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/domains", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/domains")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
-		}, testConfig.Samples)
+		})
 
-		Measure(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
+		It(fmt.Sprintf("as admin with page size %d", testConfig.LargePageSize), func() {
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/domains::as admin with page size %d", testConfig.LargePageSize))
+			AddReportEntry(experiment.Name, experiment)
+
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/domains", func() {
+						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/domains?per_page=%d", testConfig.LargePageSize))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
-		}, testConfig.Samples)
+		})
 	})
 
 	Describe("GET /v3/organizations/:guid/domains", func() {
-		Measure("as admin", func(b Benchmarker) {
+		It("as admin", func() {
 			orgGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/organizations")
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
-			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
-			})
-		}, testConfig.Samples)
 
-		Measure("as regular user", func(b Benchmarker) {
+			experiment := gmeasure.NewExperiment("GET /v3/organizations/:guid/domains::as admin")
+			AddReportEntry(experiment.Name, experiment)
+
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+
+		It("as regular user", func() {
 			orgGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/organizations")
 			Expect(orgGUIDs).NotTo(BeNil())
 			orgGUID := orgGUIDs[rand.Intn(len(orgGUIDs))]
+
+			experiment := gmeasure.NewExperiment("GET /v3/organizations/:guid/domains::as regular user")
+			AddReportEntry(experiment.Name, experiment)
+
 			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-				helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/organizations/:guid/domains", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/organizations/%s/domains", orgGUID))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
-		}, testConfig.Samples)
+		})
 	})
 
 	Describe("individually", func() {
@@ -61,38 +100,70 @@ var _ = Describe("domains", func() {
 				domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
 			})
 
-			Measure("GET /v3/domains/:guid", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
-				})
-			}, testConfig.Samples)
+			It("gets /v3/domains/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin::GET /v3/domains/:guid")
+				AddReportEntry(experiment.Name, experiment)
 
-			Measure("PATCH /v3/domains/:guid", func(b Benchmarker) {
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/domains/:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 
-			Measure("DELETE /v3/domains/:guid", func(b Benchmarker) {
+			It("patches /v3/domains/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin::PATCH /v3/domains/:guid")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
-
-					// Wait until "GET /v3/domains/:guid" fails.
-					helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("PATCH /v3/domains/:guid", func() {
+							data := `{ "metadata": { "annotations": { "test": "PATCH /v3/domains/:guid" } } }`
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
+
+			It("deletes /v3/domains/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("individually::as admin::DELETE /v3/domains/:guid")
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
+							domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
+							Expect(domainGUIDs).NotTo(BeNil())
+							domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
+
+							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
+
+							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
 		})
 
 		Describe("as regular user", func() {
-			Measure("GET /v3/domains/:guid", func(b Benchmarker) {
+			It("gets /v3/domains/:guid as regular user", func() {
 				domainGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/domains")
 				Expect(domainGUIDs).NotTo(BeNil())
 				domainGUID := domainGUIDs[rand.Intn(len(domainGUIDs))]
+
+				experiment := gmeasure.NewExperiment("individually::as regular user::GET /v3/domains/:guid")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/domains/:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/domains/%s", domainGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
 	})
 })

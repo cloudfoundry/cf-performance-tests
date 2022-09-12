@@ -5,33 +5,54 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	. "github.com/onsi/ginkgo"
+	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
+	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gmeasure"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
 )
 
 var _ = Describe("service plans", func() {
 	Describe("GET /v3/service_plans", func() {
-		Context("as admin", func() {
-			Measure("list all", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, "/v3/service_plans")
-				})
-			}, testConfig.Samples)
-			Measure(fmt.Sprintf("list with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/service_plans?per_page=%d", testConfig.LargePageSize))
-				})
-			}, testConfig.Samples)
+		It("lists all /v3/service_plans as admin", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/service_plans::as admin::list all")
+			AddReportEntry(experiment.Name, experiment)
+
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
-		Context("as regular user", func() {
-			Measure("list all", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, "/v3/service_plans")
-				})
-			}, testConfig.Samples)
+
+		It("list all /v3/service_plans as admin with large page size", func() {
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans::as admin::list with page size %d", testConfig.LargePageSize))
+			AddReportEntry(experiment.Name, experiment)
+
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans?per_page=%d", testConfig.LargePageSize))
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+
+		It("lists all /v3/service_plans as regular user", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/service_plans::as regular user::list all")
+			AddReportEntry(experiment.Name, experiment)
+
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/service_plans", func() {
+						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
 		})
 	})
 
@@ -43,22 +64,38 @@ var _ = Describe("service plans", func() {
 				Expect(servicePlanGUIDs).NotTo(BeNil())
 				servicePlanGUID = servicePlanGUIDs[rand.Intn(len(servicePlanGUIDs))]
 			})
-			Measure("show one", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
-				})
-			}, testConfig.Samples)
 
+			It("shows one /v3/service_plans/:guid as admin", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as admin::show one")
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans/:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
 		})
+
 		Context("as regular user", func() {
 			BeforeEach(func() {
 				servicePlanGUID = getRandomLimitedServicePlanGuid()
 			})
-			Measure("show one", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
+
+			It("shows one /v3/service_plans/:guid as user", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular user::show one")
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans/:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s", servicePlanGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
 	})
 
@@ -67,19 +104,35 @@ var _ = Describe("service plans", func() {
 		BeforeEach(func() {
 			servicePlanGUID = getRandomLimitedServicePlanGuid()
 		})
+
 		Context("as admin", func() {
-			Measure("show visibility", func(b Benchmarker) {
+			It("shows one /v3/service_plans/:guid/visibility as admin", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid/visibility::as admin::show visibility")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s/visibility", servicePlanGUID))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans/:guid/visibility", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s/visibility", servicePlanGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
+
 		Context("as regular user", func() {
-			Measure("show visibility", func(b Benchmarker) {
+			It("shows one /v3/service_plans/:guid/visibility as user", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid/visibility::as regular user::show visibility")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s/visibility", servicePlanGUID))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans/:guid/visibility", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/service_plans/%s/visibility", servicePlanGUID))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
 	})
 
@@ -93,28 +146,52 @@ var _ = Describe("service plans", func() {
 				serviceOfferingGuidsList = append(serviceOfferingGuidsList, helpers.ConvertToString(guid))
 			}
 		})
+
 		Context("as admin", func() {
-			Measure("filter for list of service_offerings", func(b Benchmarker) {
+			It("filters for list of service_offerings", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_offering_guids=::as admin::filter for list of service_offerings")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_offering_guids=%v", strings.Join(serviceOfferingGuidsList[:], ",")))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_offering_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_offering_guids=%v", strings.Join(serviceOfferingGuidsList[:], ",")))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
-			Measure(fmt.Sprintf("filter for list of service_offerings with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_offering_guids=%v&per_page=%d",
-						strings.Join(serviceOfferingGuidsList[:], ","), testConfig.LargePageSize))
+			})
+
+			It(fmt.Sprintf("filters for list of service_offerings with page size %d", testConfig.LargePageSize), func() {
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_offering_guids=::as admin::filter for list of service_offerings with page size %d", testConfig.LargePageSize))
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_offering_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_offering_guids=%v&per_page=%d",
+								strings.Join(serviceOfferingGuidsList[:], ","), testConfig.LargePageSize))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
+
 		Context("as regular user", func() {
-			Measure("filter for list of service_offerings", func(b Benchmarker) {
+			It("filters for list of service_offerings", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_offering_guids=::as regular user::filter for list of service_offerings")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_offering_guids=%v", strings.Join(serviceOfferingGuidsList[:], ",")))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_offering_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_offering_guids=%v", strings.Join(serviceOfferingGuidsList[:], ",")))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
 	})
 
@@ -128,35 +205,67 @@ var _ = Describe("service plans", func() {
 				serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
 			}
 		})
+
 		Context("as admin", func() {
-			Measure("filter for list of service_instances", func(b Benchmarker) {
+			It("filters for list of service_instances", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_instance_guids=::as admin::filter for list of service_instances")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
-			Measure(fmt.Sprintf("filter for list of service_instances with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_instance_guids=%v&per_page=%d",
-						strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+			})
+
+			It(fmt.Sprintf("filters for list of service_instances with page size %d", testConfig.LargePageSize), func() {
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_instance_guids=::as admin::filter for list of service_instances with page size %d", testConfig.LargePageSize))
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_instance_guids=%v&per_page=%d",
+								strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
+
 		Context("as regular user", func() {
-			Measure("filter for list of service_instances", func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+			It("filters for list of service_instances", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?service_instance_guids=::as regular user::filter for list of service_instances")
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
-			Measure(fmt.Sprintf("filter for list of service_instances with page size %d", testConfig.LargePageSize), func(b Benchmarker) {
-				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.LongTimeout, fmt.Sprintf(
-						"/v3/service_plans?service_instance_guids=%v&per_page=%d",
-						strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+			})
+
+			It(fmt.Sprintf("filters for list of service_instances with page size %d", testConfig.LargePageSize), func() {
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_instance_guids=::as regular user::filter for list of service_instances with page size %d", testConfig.LargePageSize))
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_instance_guids=%v&per_page=%d",
+								strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
 		})
 	})
 
@@ -177,13 +286,22 @@ var _ = Describe("service plans", func() {
 				spaceGuidsList = append(spaceGuidsList, helpers.ConvertToString(guid))
 			}
 		})
+
 		Context("as regular user", func() {
-			Measure("filter by org and space guids", func(b Benchmarker) {
+			It("filters by org and space guids", func() {
+				experiment := gmeasure.NewExperiment("GET /v3/service_plans?organization_guids=&space_guids=::as regular user::filter by org and space guids")
+				AddReportEntry(experiment.Name, experiment)
+
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
-					helpers.TimeCFCurl(b, testConfig.BasicTimeout, fmt.Sprintf(
-						"/v3/service_plans?organization_guids=%v&space_guids=%v", strings.Join(orgGuidsList[:], ","), strings.Join(spaceGuidsList[:], ",")))
+					experiment.Sample(func(idx int) {
+						experiment.MeasureDuration("GET /v3/service_plans?organization_guids=:guid&space_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
+								"/v3/service_plans?organization_guids=%v&space_guids=%v", strings.Join(orgGuidsList[:], ","), strings.Join(spaceGuidsList[:], ",")))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
-			}, testConfig.Samples)
+			})
+
 		})
 	})
 })

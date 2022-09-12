@@ -2,8 +2,8 @@ package helpers
 
 import (
 	"fmt"
+	"log"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/spf13/viper"
@@ -33,6 +33,7 @@ type Config struct {
 	LargePageSize       int    `mapstructure:"large_page_size"`
 	LargeElementsFilter int    `mapstructure:"large_elements_filter"`
 	Samples             int
+	SampleLength        int           `mapstructure:"sample_length"`
 	BasicTimeout        time.Duration `mapstructure:"basic_timeout"`
 	LongTimeout         time.Duration `mapstructure:"long_timeout"`
 	Users               Users
@@ -81,8 +82,22 @@ func (config Config) GetSkipSSLValidation() bool                     { return co
 func (config Config) GetNamePrefix() string                          { return config.TestResourcePrefix }
 func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t }
 func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
+func (config Config) GetAddExistingUserToExistingSpace() bool        { return false }
 
-func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName string) *JsonReporter {
+func ConfigureJsonReporter(testConfig *Config, testSuiteName string, testHeadlineName string) *JsonReporter {
+	err := viper.ReadInConfig()
+
+	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
+	err = os.MkdirAll(resultsFolder, os.ModePerm)
+	if err != nil {
+		log.Fatalf("Cannot create Directory: %s", err.Error())
+	}
+
+	timestamp := time.Now().Unix()
+	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testHeadlineName, testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp, testSuiteName, testConfig.DatabaseType)
+}
+
+func LoadConfig(testConfig *Config) {
 	viper.SetConfigName("config")
 	viper.AddConfigPath("../../")
 	viper.AddConfigPath("$HOME/.cf-performance-tests")
@@ -91,24 +106,14 @@ func ConfigureJsonReporter(t *testing.T, testConfig *Config, testSuiteName strin
 	viper.SetDefault("database_type", PsqlDb)
 	err := viper.ReadInConfig()
 	if err != nil {
-		t.Fatalf("error loading config: %s", err.Error())
+		log.Fatalf("error loading config: %s", err.Error())
 	}
-
 	err = viper.Unmarshal(testConfig)
 	if err != nil {
-		t.Fatalf("error parsing config: %s", err.Error())
+		log.Fatalf("error parsing config: %s", err.Error())
 	}
 
 	if testConfig.DatabaseType != PsqlDb && testConfig.DatabaseType != MysqlDb {
-		t.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
+		log.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
 	}
-
-	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
-	err = os.MkdirAll(resultsFolder, os.ModePerm)
-	if err != nil {
-		t.Fatalf("Cannot create Directory: %s", err.Error())
-	}
-
-	timestamp := time.Now().Unix()
-	return NewJsonReporter(fmt.Sprintf("%s/%s-test-results-%d.json", resultsFolder, testSuiteName, timestamp), testConfig.CfDeploymentVersion, testConfig.CapiVersion, timestamp)
 }

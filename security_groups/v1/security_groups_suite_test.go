@@ -7,8 +7,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	. "github.com/onsi/ginkgo"
+	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/ginkgo/v2/types"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -79,7 +80,12 @@ var _ = AfterSuite(func() {
 	}
 })
 
+var _ = ReportAfterSuite("Security groups test suite", func(report types.Report) {
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "security-groups", "security groups"), report)
+})
+
 func TestSecurityGroups(t *testing.T) {
+	helpers.LoadConfig(&testConfig)
 	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "SecurityGroupsTest Suite", []Reporter{helpers.ConfigureJsonReporter(t, &testConfig, "security-groups")})
+	RunSpecs(t, "Security groups Suite")
 }

@@ -7,8 +7,9 @@ import (
 	"log"
 	"testing"
 
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	. "github.com/onsi/ginkgo"
+	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
+	. "github.com/onsi/ginkgo/v2"
+	"github.com/onsi/ginkgo/v2/types"
 	. "github.com/onsi/gomega"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -73,7 +74,12 @@ var _ = AfterSuite(func() {
 	}
 })
 
+var _ = ReportAfterSuite("Isolation segments test suite", func(report types.Report) {
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "isolation-segments", "isolation segments"), report)
+})
+
 func TestIsolationSegments(t *testing.T) {
+	helpers.LoadConfig(&testConfig)
 	RegisterFailHandler(Fail)
-	RunSpecsWithDefaultAndCustomReporters(t, "IsolationSegmentsTest Suite", []Reporter{helpers.ConfigureJsonReporter(t, &testConfig, "isolation-segments")})
+	RunSpecs(t, "IsolationSegments Suite")
 }

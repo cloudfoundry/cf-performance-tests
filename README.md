@@ -18,7 +18,10 @@ The tests in the main branch are running regularly on a public concourse, which 
 The repo containing the concourse pipeline for bootstrapping of the CF foundation and running the tests, can be found [here](https://github.com/cloudfoundry/cf-performance-tests-pipeline). The test results and generated charts can be found there as well.
 
 ## Running tests
-Tests in this repository are written using [Ginkgo](https://onsi.github.io/ginkgo/) using the [Measure](https://pkg.go.dev/github.com/onsi/ginkgo#Measure) spec definition to time API calls across multiple attempts, tracking the minimum, maximum durations as well as the standard deviation.
+Tests in this repository are written using [Ginkgo](https://onsi.github.io/ginkgo/) using the [GOmega GMeasure](https://pkg.go.dev/github.com/onsi/gomega@v1.20.0/gmeasure) testing package. This package allows the user to:
+- Set up a new experiment
+- Measure the [duration](https://pkg.go.dev/github.com/onsi/gomega@v1.20.0/gmeasure#Experiment.MeasureDuration) of the experiment (in this suite's case, this mostly means the duration of curls to different endpoints as different users)
+- Generate reports based on the tests that include different statistics (min time, max time, mean, standard deviation, etc).
 
 The test suite uses [Viper](https://github.com/spf13/viper) for configuration of parameters such as API endpoint, credentials etc. Viper will look for a configuration file in both the `$HOME` directory and the working directory that tests are invoked from. See the [Config struct](helpers/config.go) for available configuration parameters.
 
