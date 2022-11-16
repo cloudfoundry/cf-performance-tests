@@ -130,8 +130,8 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
 		"DELETE FROM isolation_segment_annotations USING isolation_segments WHERE isolation_segment_annotations.resource_guid = isolation_segments.guid AND isolation_segments.name LIKE '%s'",
 		"DELETE FROM isolation_segments WHERE name LIKE '%s'",
-		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
 		"DELETE FROM events WHERE actee_name LIKE '%s'",
+		"DELETE FROM events WHERE actee LIKE '%s'",
 		"DELETE FROM service_plan_visibilities USING service_plans WHERE service_plans.id = service_plan_visibilities.service_plan_id AND service_plans.name LIKE '%s'",
 		"DELETE FROM service_plans WHERE name LIKE '%s'",
 		"DELETE FROM services WHERE label LIKE '%s'",
@@ -162,14 +162,18 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_plans WHERE name LIKE '%s'",
 		"DELETE FROM services WHERE label LIKE '%s'",
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
+		"DELETE FROM events WHERE actee_name LIKE '%s'",
+		"DELETE FROM events WHERE actee LIKE '%s'",
+		"DELETE FROM apps WHERE name LIKE '%s'",
+		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
 	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
-
+	log.Printf("%v Cleaning up db...\n", time.Now().Format(time.RFC850))
 	if testConfig.DatabaseType == PsqlDb {
 		for _, statement := range deleteStatementsPostgres {
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 		}
-
+		ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP TABLE IF EXISTS event_types"))
 		log.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
 		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 	}
@@ -178,6 +182,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		for _, statement := range deleteStatementsMySql {
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 		}
+		ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP TABLE IF EXISTS event_types"))
 	}
 
 	if uaadb != nil {
