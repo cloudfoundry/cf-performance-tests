@@ -311,3 +311,152 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_table_event_types(
+) RETURNS void AS
+$$
+
+BEGIN
+    CREATE table event_types (id serial primary key , "type" VARCHAR(128), count_events INT);
+    INSERT INTO event_types ("type", count_events) VALUES ('audit.user.space_developer_add',100000),
+                                                          ('audit.app.environment_variables.show',100000),
+                                                          ('audit.service_binding.delete',100000),
+                                                          ('audit.user.organization_manager_remove',50000),
+                                                          ('audit.user.organization_billing_manager_remove',50000),
+                                                          ('audit.service_binding.create',50000),
+                                                          ('audit.service_instance.start_delete',50000),
+                                                          ('audit.service_plan.update',50000),
+                                                          ('audit.app.environment.show',50000),
+                                                          ('audit.app.map-route',50000),
+                                                          ('audit.app.unmap-route',50000),
+                                                          ('audit.user.space_supporter_add',10000),
+                                                          ('audit.app.process.crash',10000),
+                                                          ('app.crash',10000),
+                                                          ('audit.user.space_auditor_remove',10000),
+                                                          ('audit.user.organization_manager_add',10000),
+                                                          ('audit.user.space_manager_add',10000),
+                                                          ('audit.user.space_supporter_remove',10000),
+                                                          ('audit.app.build.create',10000),
+                                                          ('audit.app.droplet.create',10000),
+                                                          ('audit.app.process.update',10000),
+                                                          ('audit.app.process.scale',10000),
+                                                          ('audit.app.revision.create',10000),
+                                                          ('audit.app.stop',10000),
+                                                          ('audit.app.start',10000),
+                                                          ('audit.service.update',10000),
+                                                          ('audit.app.droplet.mapped',10000),
+                                                          ('audit.app.package.create',10000),
+                                                          ('audit.app.package.upload',10000),
+                                                          ('audit.app.process.rescheduling',10000),
+                                                          ('audit.route.create',10000),
+                                                          ('audit.app.update',10000),
+                                                          ('audit.app.package.delete',10000),
+                                                          ('audit.app.droplet.delete',10000),
+                                                          ('audit.service_broker.update',10000),
+                                                          ('audit.app.process.delete',10000),
+                                                          ('audit.user.space_manager_remove',10000),
+                                                          ('audit.route.delete-request',10000),
+                                                          ('audit.app.create',10000),
+                                                          ('audit.app.delete-request',10000),
+                                                          ('audit.service_instance.delete',10000),
+                                                          ('audit.service_instance.create',10000),
+                                                          ('audit.service_instance.update',10000),
+                                                          ('audit.app.process.create',10000),
+                                                          ('audit.app.ssh-authorized',5000),
+                                                          ('audit.user.organization_auditor_add',5000),
+                                                          ('audit.service_plan_visibility.update',5000),
+                                                          ('audit.service_key.create',5000),
+                                                          ('audit.user.organization_user_add',5000),
+                                                          ('audit.service_key.delete',5000),
+                                                          ('audit.service_instance.start_create',5000),
+                                                          ('audit.app.apply_manifest',5000),
+                                                          ('audit.user.space_auditor_add',5000),
+                                                          ('audit.user.space_developer_remove',5000),
+                                                          ('audit.user.organization_auditor_remove',5000),
+                                                          ('audit.user.organization_user_remove',5000),
+                                                          ('audit.app.restart',1000),
+                                                          ('audit.service_plan.create',1000),
+                                                          ('audit.service_plan.delete',1000),
+                                                          ('audit.service_plan_visibility.delete',1000),
+                                                          ('audit.app.upload-bits',1000),
+                                                          ('audit.app.task.create',1000),
+                                                          ('audit.user_provided_service_instance.update',1000),
+                                                          ('audit.service_instance.start_update',1000),
+                                                          ('audit.app.deployment.create',1000),
+                                                          ('audit.space.create',1000),
+                                                          ('audit.space.delete-request',1000),
+                                                          ('audit.organization.update',500),
+                                                          ('audit.user_provided_service_instance.create',500),
+                                                          ('audit.user_provided_service_instance.delete',500),
+                                                          ('audit.service_instance.unbind_route',500),
+                                                          ('audit.service_instance.bind_route',500),
+                                                          ('audit.app.restage',500),
+                                                          ('audit.route.update',500),
+                                                          ('audit.service.create',100),
+                                                          ('audit.service.delete',100),
+                                                          ('audit.service_broker.create',100),
+                                                          ('audit.service_broker.delete',100),
+                                                          ('audit.service_instance.purge',100),
+                                                          ('audit.organization.delete-request',100),
+                                                          ('audit.app.package.download',100),
+                                                          ('audit.organization.create',100),
+                                                          ('audit.app.copy-bits',100),
+                                                          ('audit.service_key.update',100),
+                                                          ('audit.service_instance.share',100),
+                                                          ('audit.service_instance.unshare',100),
+                                                          ('audit.service_binding.start_delete',10),
+                                                          ('audit.service_binding.start_create',10),
+                                                          ('audit.app.deployment.cancel',10),
+                                                          ('audit.app.task.cancel',10),
+                                                          ('audit.service_key.start_delete',10),
+                                                          ('audit.space.update',10),
+                                                          ('audit.app.ssh-unauthorized',10),
+                                                          ('audit.service_key.start_create',10),
+                                                          ('audit.app.process.terminate_instance',1),
+                                                          ('audit.app.droplet.download',1),
+                                                          ('audit.service_dashboard_client.create',1),
+                                                          ('audit.service_dashboard_client.delete',1),
+                                                          ('audit.service_route_binding.delete',1),
+                                                          ('audit.service_route_binding.create',1),
+                                                          ('blob.remove_orphan',1);
+
+
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+
+CREATE OR REPLACE FUNCTION create_events(
+) RETURNS void AS
+$$
+DECLARE
+    event_type text;
+    amount int;
+    num_events int;
+    org_guid text;
+    space_guid text;
+    org_name_query text := '{{.Prefix}}-%';
+    space_name_query text := '{{.Prefix}}-space-%';
+    events_guid text;
+    events_actor_prefix text := '{{.Prefix}}-events-actor-';
+    events_actor_type_prefix text := '{{.Prefix}}-events-actor-type-';
+    events_actee_prefix text := '{{.Prefix}}-events-actee-';
+    events_actee_type_prefix text := '{{.Prefix}}-events-actee-type-';
+BEGIN
+    FOR event_type, num_events IN (SELECT "type", count_events FROM event_types) LOOP
+        FOR amount IN 1..num_events LOOP
+            events_guid := gen_random_uuid();
+            SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT 1 INTO org_guid;
+            SELECT guid FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT 1 INTO space_guid;
+            INSERT INTO events (guid, "timestamp", "type", actor, actor_type, actee, actee_type, organization_guid, space_guid)
+            VALUES (org_name_query || events_guid, current_timestamp, event_type, events_actor_prefix || events_guid, events_actor_type_prefix || events_guid,
+                    events_actee_prefix || events_guid, events_actee_type_prefix || events_guid, org_guid, space_guid);
+        END LOOP;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
