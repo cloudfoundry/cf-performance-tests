@@ -315,13 +315,14 @@ $$ LANGUAGE plpgsql;
 -- ============================================================= --
 
 -- FUNC DEF:
-CREATE OR REPLACE FUNCTION create_table_event_types(
+CREATE OR REPLACE FUNCTION create_event_types_table(
 ) RETURNS void AS
 $$
 
 BEGIN
-    CREATE table event_types (id serial primary key , "type" VARCHAR(128), count_events INT);
-    INSERT INTO event_types ("type", count_events) VALUES ('audit.user.space_developer_add',100000),
+    DROP TABLE IF EXISTS event_types;
+    CREATE table event_types (id serial primary key , audit_event_type VARCHAR(128), count_events INT);
+    INSERT INTO event_types (audit_event_type, count_events) VALUES ('audit.user.space_developer_add',100000),
                                                           ('audit.app.environment_variables.show',100000),
                                                           ('audit.service_binding.delete',100000),
                                                           ('audit.user.organization_manager_remove',50000),
@@ -448,7 +449,7 @@ DECLARE
     events_actee_prefix text := '{{.Prefix}}-events-actee-';
     events_actee_type_prefix text := '{{.Prefix}}-events-actee-type-';
 BEGIN
-    FOR event_type, num_events IN (SELECT "type", count_events FROM event_types) LOOP
+    FOR event_type, num_events IN (SELECT audit_event_type, count_events FROM event_types) LOOP
         FOR amount IN 1..num_events LOOP
             events_guid := gen_random_uuid();
             SELECT guid FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT 1 INTO org_guid;

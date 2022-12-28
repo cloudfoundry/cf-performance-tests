@@ -8,7 +8,7 @@ BEGIN
     DECLARE space_guid VARCHAR(255);
     DECLARE events_guid VARCHAR(255);
     DECLARE finished BOOLEAN DEFAULT FALSE;
-    DECLARE events_cursor CURSOR FOR SELECT "type", count_events FROM event_types;
+    DECLARE events_cursor CURSOR FOR SELECT audit_event_type, count_events FROM event_types;
     DECLARE import_cursor CURSOR FOR SELECT ean, sku, mpn, manufacturerName, manufacturerUniqueId, images FROM importjob;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
 
