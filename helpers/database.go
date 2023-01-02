@@ -174,6 +174,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 		}
 		ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP TABLE IF EXISTS event_types"))
+		ExecuteStatement(ccdb, ctx, fmt.Sprintf("TRUNCATE events"))
 		log.Printf("%v Running 'VACUUM FULL' on db...\n", time.Now().Format(time.RFC850))
 		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 	}
@@ -183,6 +184,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 			ExecuteStatement(ccdb, ctx, fmt.Sprintf(statement, nameQuery))
 		}
 		ExecuteStatement(ccdb, ctx, fmt.Sprintf("DROP TABLE IF EXISTS event_types"))
+		ExecuteStatement(ccdb, ctx, fmt.Sprintf("TRUNCATE events"))
 	}
 
 	if uaadb != nil {

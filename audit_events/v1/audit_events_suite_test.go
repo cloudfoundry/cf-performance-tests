@@ -46,7 +46,7 @@ var _ = BeforeSuite(func() {
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
 
 	// create events helper table
-	createEventsTableStatement := fmt.Sprintf("create_table_event_types()")
+	createEventsTableStatement := fmt.Sprintf("create_event_types_table()")
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createEventsTableStatement, testConfig)
 
 	// create events

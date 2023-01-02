@@ -1,12 +1,13 @@
 CREATE PROCEDURE create_event_types_table()
 BEGIN
+    DROP TABLE IF EXISTS event_types;
     create table event_types
         (
-            Id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-            type VARCHAR(128),
+            id INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+            audit_event_type VARCHAR(128),
             count_events INT
         );
-    INSERT INTO event_types (type, count_events) VALUES ('audit.user.space_developer_add',100000),
+    INSERT INTO event_types (audit_event_type, count_events) VALUES ('audit.user.space_developer_add',100000),
                                                         ('audit.app.environment_variables.show',100000),
                                                         ('audit.service_binding.delete',100000),
                                                         ('audit.user.organization_manager_remove',50000),
@@ -72,7 +73,7 @@ BEGIN
                                                         ('audit.service_instance.start_update',1000),
                                                         ('audit.app.deployment.create',1000),
                                                         ('audit.space.create',1000),
-                                                        ('audit.space.delete-request',1000),
+                                                        ('audit.space.delete-request',500),
                                                         ('audit.organization.update',500),
                                                         ('audit.user_provided_service_instance.create',500),
                                                         ('audit.user_provided_service_instance.delete',500),
