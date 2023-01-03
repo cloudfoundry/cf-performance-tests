@@ -56,21 +56,8 @@ var _ = Describe("audit_events", func() {
 			})
 		})
 
-		It(fmt.Sprintf("as admin with types filter"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types %s&per_page=500&order_by=-created_at", eventTypes))
-			AddReportEntry(experiment.Name, experiment)
-
-			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
-				experiment.Sample(func(idx int) {
-					experiment.MeasureDuration("GET /v3/audit_events", func() {
-						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/audit_events?types=%s&per_page=500&order_by=-created_at", eventTypes))
-					})
-				}, gmeasure.SamplingConfig{N: testConfig.Samples})
-			})
-		})
-
 		It(fmt.Sprintf("as admin with types filter and page size 5"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types %s&per_page=5&order_by=-created_at", eventTypes))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types filter & page size 5"))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -83,7 +70,7 @@ var _ = Describe("audit_events", func() {
 		})
 
 		It(fmt.Sprintf("as admin with types filter and page size 50"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types %s&per_page=50&order_by=-created_at", eventTypes))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types filter & page size 50"))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -96,7 +83,7 @@ var _ = Describe("audit_events", func() {
 		})
 
 		It(fmt.Sprintf("as admin with types filter and page size %d", testConfig.LargePageSize), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types %s&page size %d", eventTypes, testConfig.LargePageSize))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types filter & page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -112,7 +99,7 @@ var _ = Describe("audit_events", func() {
 
 			selectAppGuidsStatement := fmt.Sprintf("SELECT guid FROM apps WHERE name LIKE '%s-app-%%' ORDER BY random() LIMIT 1", testConfig.GetNamePrefix())
 			appGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectAppGuidsStatement)
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with target_guids %s&page=1&per_page=5&order_by=-created_at", appGuids))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with target_guids &page=1&per_page=5&order_by=-created_at"))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -125,7 +112,7 @@ var _ = Describe("audit_events", func() {
 		})
 
 		It(fmt.Sprintf("as admin with created_ats [gt]"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with created_ats [gt]=2022-11-14T08:13:01Z"))
+			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with created_ats [gt]"))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
