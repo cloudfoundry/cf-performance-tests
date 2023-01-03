@@ -97,6 +97,7 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 }
 
 // define "random()" function for MySQL to enable re-use of PostgreSQL statements
+// is this still in use? since we have extra mysql procedures..
 func DefineRandomFunction(ccdb *sql.DB, ctx context.Context) {
 	ExecuteStatement(ccdb, ctx, "DROP FUNCTION IF EXISTS random")
 	ExecuteStatement(ccdb, ctx, "CREATE FUNCTION random() RETURNS FLOAT RETURN RAND()")
