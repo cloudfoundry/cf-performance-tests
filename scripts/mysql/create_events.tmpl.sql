@@ -24,8 +24,8 @@ BEGIN
             DO
                 SET counter = counter + 1;
                 SET events_guid = uuid();
-                SELECT guid FROM organizations WHERE name LIKE '{{.Prefix}}-%' ORDER BY random() LIMIT 1 INTO org_guid;
-                SELECT guid FROM spaces WHERE name LIKE '{{.Prefix}}-space-%' ORDER BY random() LIMIT 1 INTO space_guid;
+                SELECT guid FROM organizations WHERE name LIKE '{{.Prefix}}-%' ORDER BY RAND() LIMIT 1 INTO org_guid;
+                SELECT guid FROM spaces WHERE name LIKE '{{.Prefix}}-space-%' ORDER BY RAND() LIMIT 1 INTO space_guid;
                 INSERT INTO events (guid, timestamp, type, actor, actor_type, actee, actee_type, organization_guid, space_guid)
                 VALUES (events_guid, current_timestamp, event_type, CONCAT('{{.Prefix}}-events-actor-', events_guid), CONCAT('{{.Prefix}}-events-actor-type-', events_guid),
                         CONCAT('{{.Prefix}}-events-actee-', events_guid), CONCAT('{{.Prefix}}-events-actee-type-', events_guid), org_guid, space_guid);
