@@ -53,8 +53,8 @@ var _ = BeforeSuite(func() {
 	createEventStatement := fmt.Sprintf("create_events()")
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createEventStatement, testConfig)
 
-	// create apps table entries
-	createApps(2)
+	// create one app to have a target_guid for the test
+	createApps(1)
 
 	// assign the regular user to all orgs
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)

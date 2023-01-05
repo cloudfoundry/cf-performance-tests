@@ -97,7 +97,7 @@ var _ = Describe("audit_events", func() {
 
 		It(fmt.Sprintf("as admin with target_guids"), func() {
 
-			selectAppGuidsStatement := fmt.Sprintf("SELECT guid FROM apps WHERE name LIKE '%s-app-%%' ORDER BY random() LIMIT 1", testConfig.GetNamePrefix())
+			selectAppGuidsStatement := fmt.Sprintf("SELECT guid FROM apps WHERE name LIKE '%s-app-%%' LIMIT 1", testConfig.GetNamePrefix())
 			appGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectAppGuidsStatement)
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with target_guids &page=1&per_page=5&order_by=-created_at"))
 			AddReportEntry(experiment.Name, experiment)
