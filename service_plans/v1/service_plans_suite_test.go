@@ -76,10 +76,10 @@ var _ = BeforeSuite(func() {
 
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs / 2
-	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_manager('%s', %d)", regularUserGUID, orgsAssignedToRegularUser)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 	spacesAssignedToRegularUser := orgs * spacesPerOrg / 2
-	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_developer('%s', %d)", regularUserGUID, spacesAssignedToRegularUser)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)

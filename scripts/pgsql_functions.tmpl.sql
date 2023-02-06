@@ -96,8 +96,9 @@ $$ LANGUAGE plpgsql;
 -- ============================================================= --
 
 -- FUNC DEF:
-CREATE OR REPLACE FUNCTION assign_user_as_space_developer(
+CREATE OR REPLACE FUNCTION assign_user_as_space_role(
     user_guid TEXT,
+    space_role TEXT,
     num_spaces INTEGER
 ) RETURNS void AS
 $$
@@ -108,7 +109,7 @@ DECLARE
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
     FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT num_spaces) LOOP
-        INSERT INTO spaces_developers (space_id, user_id) VALUES (v_space_id, v_user_id);
+        EXECUTE FORMAT('INSERT INTO %s (space_id, user_id) VALUES (%s, %s)', space_role, v_space_id, v_user_id);
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -161,19 +162,20 @@ $$ LANGUAGE plpgsql;
 -- ============================================================= --
 
 -- FUNC DEF:
-CREATE OR REPLACE FUNCTION assign_user_as_org_manager(
+CREATE OR REPLACE FUNCTION assign_user_as_org_role(
     user_guid TEXT,
+    org_role TEXT,
     num_orgs INTEGER
 ) RETURNS void AS
 $$
 DECLARE
     v_user_id int;
-    org_id int;
+    v_org_id int;
     org_name_query text := '{{.Prefix}}-org-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
-    FOR org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT num_orgs) LOOP
-        INSERT INTO organizations_managers (organization_id, user_id) VALUES (org_id, v_user_id);
+    FOR v_org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT num_orgs) LOOP
+        EXECUTE FORMAT('INSERT INTO %s (organization_id, user_id) VALUES (%s, %s)', org_role, v_org_id, v_user_id);
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;

@@ -2,6 +2,7 @@ package audit_events
 
 import (
 	"fmt"
+
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
