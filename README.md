@@ -14,7 +14,7 @@ These tests are not intended to:
 * Assist with scaling decisions of CAPI deployments
 
 ## Test automation
-The tests in the main branch are running regularly on a public concourse, which can be found [here](https://bosh.ci.cloudfoundry.org/).
+The tests in the main branch are running regularly on a public concourse, which can be found [here](https://concourse.app-runtime-interfaces.ci.cloudfoundry.org/).
 The repo containing the concourse pipeline for bootstrapping of the CF foundation and running the tests, can be found [here](https://github.com/cloudfoundry/cf-performance-tests-pipeline). The test results and generated charts can be found there as well.
 
 ## Running tests
