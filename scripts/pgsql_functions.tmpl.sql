@@ -433,7 +433,6 @@ $$ LANGUAGE plpgsql;
 -- ============================================================= --
 
 -- FUNC DEF:
-
 CREATE OR REPLACE FUNCTION create_events(
 ) RETURNS void AS
 $$
@@ -460,6 +459,45 @@ BEGIN
             VALUES (org_name_query || events_guid, current_timestamp, event_type, events_actor_prefix || events_guid, events_actor_type_prefix || events_guid,
                     events_actee_prefix || events_guid, events_actee_type_prefix || events_guid, org_guid, space_guid);
         END LOOP;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_users_with_org_and_space_roles(
+    org_guid TEXT,
+    space_guid TEXT,
+    num_users INTEGER
+) RETURNS void AS
+$$
+DECLARE
+    org_name_prefix text := '{{.Prefix}}-org-';
+    default_quota_definition_id int := 1;
+    org_id int;
+    space_name_prefix text := '{{.Prefix}}-space-';
+    space_id int;
+    user_guid text;
+    active BOOLEAN := true;
+    user_id int;
+BEGIN
+    INSERT INTO organizations (guid, name, quota_definition_id) VALUES (org_guid, org_name_prefix || org_guid, default_quota_definition_id) RETURNING id INTO org_id;
+    INSERT INTO spaces (guid, name, organization_id) VALUES (space_guid, space_name_prefix || space_guid, org_id) RETURNING id INTO space_id;
+
+    FOR _ IN 1..num_users LOOP
+        user_guid := gen_random_uuid();
+        INSERT INTO users (guid, default_space_id, active) VALUES (user_guid, space_id, active) RETURNING id INTO user_id;
+
+        INSERT INTO organizations_managers (organization_id, user_id) VALUES (org_id, user_id);
+        INSERT INTO organizations_billing_managers (organization_id, user_id) VALUES (org_id, user_id);
+        INSERT INTO organizations_auditors (organization_id, user_id) VALUES (org_id, user_id);
+        INSERT INTO organizations_users (organization_id, user_id) VALUES (org_id, user_id);
+
+        INSERT INTO spaces_managers (space_id, user_id) VALUES (space_id, user_id);
+        INSERT INTO spaces_developers (space_id, user_id) VALUES (space_id, user_id);
+        INSERT INTO spaces_supporters (space_id, user_id) VALUES (space_id, user_id);
+        INSERT INTO spaces_auditors (space_id, user_id) VALUES (space_id, user_id);
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;

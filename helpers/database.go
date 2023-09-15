@@ -96,13 +96,6 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 	}
 }
 
-// define "random()" function for MySQL to enable re-use of PostgreSQL statements
-// is this still in use? since we have extra mysql procedures..
-func DefineRandomFunction(ccdb *sql.DB, ctx context.Context) {
-	ExecuteStatement(ccdb, ctx, "DROP FUNCTION IF EXISTS random")
-	ExecuteStatement(ccdb, ctx, "CREATE FUNCTION random() RETURNS FLOAT RETURN RAND()")
-}
-
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
 	deleteStatementsPostgres := []string{
 		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
@@ -122,13 +115,14 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM spaces_developers USING spaces WHERE spaces_developers.space_id = spaces.id AND spaces.name LIKE '%s'",
 		"DELETE FROM spaces_supporters USING spaces WHERE spaces_supporters.space_id = spaces.id AND spaces.name LIKE '%s'",
 		"DELETE FROM spaces_auditors USING spaces WHERE spaces_auditors.space_id = spaces.id AND spaces.name LIKE '%s'",
-		"DELETE FROM space_labels USING spaces WHERE space_labels.resource_guid = spaces.guid AND spaces.name LIKE '%s'",
-		"DELETE FROM spaces WHERE name LIKE '%s'",
-		"DELETE FROM service_plan_visibilities USING organizations WHERE service_plan_visibilities.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_managers USING organizations WHERE organizations_managers.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_billing_managers USING organizations WHERE organizations_billing_managers.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_auditors USING organizations WHERE organizations_auditors.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_users USING organizations WHERE organizations_users.organization_id = organizations.id AND organizations.name LIKE '%s'",
+		"DELETE FROM users USING spaces WHERE users.default_space_id = spaces.id AND spaces.name LIKE '%s'",
+		"DELETE FROM space_labels USING spaces WHERE space_labels.resource_guid = spaces.guid AND spaces.name LIKE '%s'",
+		"DELETE FROM spaces WHERE name LIKE '%s'",
+		"DELETE FROM service_plan_visibilities USING organizations WHERE service_plan_visibilities.organization_id = organizations.id AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations_isolation_segments USING organizations WHERE organizations_isolation_segments.organization_guid = organizations.guid AND organizations.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
 		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
@@ -154,13 +148,14 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM s_d USING spaces_developers s_d, spaces s WHERE s_d.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM s_s USING spaces_supporters s_s, spaces s WHERE s_s.space_id = s.id AND s.name LIKE '%s'",
 		"DELETE FROM s_a USING spaces_auditors s_a, spaces s WHERE s_a.space_id = s.id AND s.name LIKE '%s'",
-		"DELETE FROM s_l USING space_labels s_l, spaces s WHERE s_l.resource_guid = s.guid AND s.name LIKE '%s'",
-		"DELETE FROM spaces WHERE name LIKE '%s'",
-		"DELETE FROM s_p_v USING service_plan_visibilities s_p_v, organizations o WHERE s_p_v.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_m USING organizations_managers o_m, organizations o WHERE o_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_b_m USING organizations_billing_managers o_b_m, organizations o WHERE o_b_m.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_a USING organizations_auditors o_a, organizations o WHERE o_a.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_u USING organizations_users o_u, organizations o WHERE o_u.organization_id = o.id AND o.name LIKE '%s'",
+		"DELETE FROM u USING users u, spaces s WHERE u.default_space_id = s.id AND s.name LIKE '%s'",
+		"DELETE FROM s_l USING space_labels s_l, spaces s WHERE s_l.resource_guid = s.guid AND s.name LIKE '%s'",
+		"DELETE FROM spaces WHERE name LIKE '%s'",
+		"DELETE FROM s_p_v USING service_plan_visibilities s_p_v, organizations o WHERE s_p_v.organization_id = o.id AND o.name LIKE '%s'",
 		"DELETE FROM o_i_s USING organizations_isolation_segments o_i_s, organizations o WHERE o_i_s.organization_guid = o.guid AND o.name LIKE '%s'",
 		"DELETE FROM organizations WHERE name LIKE '%s'",
 		"DELETE FROM i_s_a USING isolation_segment_annotations i_s_a, isolation_segments i_s WHERE i_s_a.resource_guid = i_s.guid AND i_s.name LIKE '%s'",
@@ -233,17 +228,6 @@ func ExecuteStatement(db *sql.DB, ctx context.Context, statement string) {
 	checkError(err)
 	_, err = result.RowsAffected()
 	checkError(err)
-}
-
-func ExecutePreparedInsertStatement(db *sql.DB, ctx context.Context, statement string, args ...interface{}) int {
-	var lastInsertId int
-	stmt, err := db.PrepareContext(ctx, statement)
-	checkError(err)
-	defer stmt.Close()
-
-	err = stmt.QueryRowContext(ctx, args...).Scan(&lastInsertId)
-	checkError(err)
-	return lastInsertId
 }
 
 func ExecuteInsertStatement(db *sql.DB, ctx context.Context, statement string, testConfig Config) int {
