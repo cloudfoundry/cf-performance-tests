@@ -1,10 +1,10 @@
 package helpers
 
 import (
+	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -25,18 +25,40 @@ type APIResponse struct {
 	} `json:"resources"`
 }
 
-func apiCall(user workflowhelpers.UserContext, testConfig Config, endpoint string) *APIResponse {
-	var session *Session
+func RemoveDebugOutput(body []byte) []byte {
+	scanner := bufio.NewScanner(bytes.NewReader(body))
+	var buffer bytes.Buffer
+	write := false
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "{") {
+			write = true
+		}
+		if write {
+			buffer.WriteString(line + "\n")
+		}
+	}
+
+	return buffer.Bytes()
+}
+
+func ParseResponseBody(body []byte) *APIResponse {
 	var resp *APIResponse
-	workflowhelpers.AsUser(user, testConfig.BasicTimeout, func() {
-		session = cf.Cf("curl", "--fail", endpoint).Wait(testConfig.BasicTimeout)
-		Expect(session).To(Exit(0))
-	})
-	err := json.Unmarshal(session.Out.Contents(), &resp)
+	err := json.Unmarshal(body, &resp)
 	if err != nil {
 		return nil
 	}
 	return resp
+}
+
+func apiCall(user workflowhelpers.UserContext, testConfig Config, endpoint string) *APIResponse {
+	var session *Session
+	workflowhelpers.AsUser(user, testConfig.BasicTimeout, func() {
+		session = cf.Cf("curl", "--fail", endpoint).Wait(testConfig.BasicTimeout)
+		Expect(session).To(Exit(0))
+	})
+	return ParseResponseBody(session.Out.Contents())
 }
 
 func GetGUIDs(user workflowhelpers.UserContext, testConfig Config, endpoint string) []string {
@@ -72,25 +94,6 @@ func WaitToFail(user workflowhelpers.UserContext, testConfig Config, endpoint st
 			exitCode = cf.Cf("curl", "--fail", endpoint).Wait(testConfig.BasicTimeout).ExitCode()
 		}
 	})
-}
-
-func GetTotalResults(user workflowhelpers.UserContext, testConfig Config, endpoint string) int {
-	var totalResults int
-	resp := apiCall(user, testConfig, endpoint)
-	if resp != nil {
-		totalResults = resp.Pagination.TotalResults
-	}
-	return totalResults
-}
-
-func GetXRuntimeHeader(response []byte) float64 {
-	exp := regexp.MustCompile(`X-Runtime: (\d+.?\d+)`)
-	matches := exp.FindSubmatch(response)
-	ExpectWithOffset(1, matches).ToNot(BeEmpty(), "Response did not contain X-Runtime header")
-
-	runtime, err := strconv.ParseFloat(string(matches[1]), 64)
-	ExpectWithOffset(1, err).ToNot(HaveOccurred(), "Runtime header could not be parsed from string to float64")
-	return runtime
 }
 
 func TimeCFCurl(timeout time.Duration, curlArguments ...string) {

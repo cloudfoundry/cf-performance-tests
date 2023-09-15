@@ -43,9 +43,6 @@ var _ = BeforeSuite(func() {
 	fmt.Printf("%v Starting to seed database with testdata...\n", time.Now().Format(time.RFC850))
 
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
-	if testConfig.DatabaseType == helpers.MysqlDb {
-		helpers.DefineRandomFunction(ccdb, ctx)
-	}
 
 	serviceBrokerId := createServiceBroker(testConfig.GetNamePrefix())
 
