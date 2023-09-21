@@ -31,6 +31,9 @@ var _ = BeforeSuite(func() {
 	testSetup.Setup()
 	ccdb, uaadb, ctx = helpers.OpenDbConnections(testConfig)
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
+	if testConfig.DatabaseType == helpers.MysqlDb {
+		helpers.DefineRandomFunction(ccdb, ctx)
+	}
 
 	// create orgs
 	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
