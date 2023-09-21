@@ -96,6 +96,12 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 	}
 }
 
+// define "random()" function for MySQL
+func DefineRandomFunction(ccdb *sql.DB, ctx context.Context) {
+	ExecuteStatement(ccdb, ctx, "DROP FUNCTION IF EXISTS random")
+	ExecuteStatement(ccdb, ctx, "CREATE FUNCTION random() RETURNS FLOAT RETURN RAND()")
+}
+
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
 	deleteStatementsPostgres := []string{
 		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
