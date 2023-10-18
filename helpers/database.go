@@ -209,11 +209,11 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
 	if testConfig.DatabaseType == PsqlDb {
 		log.Printf("%v Running 'ANALYZE' on db...\n", time.Now().Format(time.RFC850))
+		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 		ExecuteStatement(ccdb, ctx, "ANALYZE;")
 	}
-	if testConfig.DatabaseType == PsqlDb {
-		log.Printf("Skipping 'ANALYZE' for MySQL.")
-	}
+	log.Printf("%v Waiting for Database to stabalize\n", time.Now().Format(time.RFC850))
+	time.Sleep(120 * time.Second)
 }
 
 func ExecuteStoredProcedure(db *sql.DB, ctx context.Context, statement string, testConfig Config) {
