@@ -140,8 +140,8 @@ var _ = Describe("service plans", func() {
 		var serviceOfferingGuidsList []string
 		BeforeEach(func() {
 			serviceOfferingGuidsList = nil
-			serviceOfferingGuids := helpers.ExecuteSelectStatement(ccdb, ctx,
-				"SELECT guid FROM services ORDER BY random() LIMIT 50")
+			serviceOfferingsStatement := fmt.Sprintf("SELECT guid FROM services ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
+			serviceOfferingGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceOfferingsStatement)
 			for _, guid := range serviceOfferingGuids {
 				serviceOfferingGuidsList = append(serviceOfferingGuidsList, helpers.ConvertToString(guid))
 			}
@@ -199,8 +199,8 @@ var _ = Describe("service plans", func() {
 		var serviceInstanceGuidsList []string
 		BeforeEach(func() {
 			serviceInstanceGuidsList = nil
-			serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx,
-				"SELECT guid FROM service_instances ORDER BY random() LIMIT 50")
+			serviceInstanceStatement := fmt.Sprintf("SELECT guid FROM service_instances ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
+			serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceInstanceStatement)
 			for _, guid := range serviceInstanceGuids {
 				serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
 			}
@@ -274,13 +274,13 @@ var _ = Describe("service plans", func() {
 		var spaceGuidsList []string
 		BeforeEach(func() {
 			orgGuidsList = nil
-			selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
+			selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 			orgGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgGuidsStatement)
 			for _, guid := range orgGuids {
 				orgGuidsList = append(orgGuidsList, helpers.ConvertToString(guid))
 			}
 			spaceGuidsList = nil
-			selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
+			selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 			spaceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectSpaceGuidsStatement)
 			for _, guid := range spaceGuids {
 				spaceGuidsList = append(spaceGuidsList, helpers.ConvertToString(guid))
@@ -307,7 +307,7 @@ var _ = Describe("service plans", func() {
 })
 
 func getRandomLimitedServicePlanGuid() string {
-	servicePlanGUIDs := helpers.ExecuteSelectStatement(ccdb, ctx,
-		"SELECT s_p.guid FROM service_plans s_p INNER JOIN service_plan_visibilities s_p_v ON s_p.id = s_p_v.service_plan_id ORDER BY random() LIMIT 1")
+	servicePlanGUIDsStatement := fmt.Sprintf("SELECT s_p.guid FROM service_plans s_p INNER JOIN service_plan_visibilities s_p_v ON s_p.id = s_p_v.service_plan_id ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
+	servicePlanGUIDs := helpers.ExecuteSelectStatement(ccdb, ctx, servicePlanGUIDsStatement)
 	return helpers.ConvertToString(servicePlanGUIDs[0])
 }

@@ -46,13 +46,13 @@ var _ = Describe("roles", func() {
 			var spaceGuidsList []string
 			BeforeEach(func() {
 				orgGuidsList = nil
-				selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
+				selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 				orgGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgGuidsStatement)
 				for _, guid := range orgGuids {
 					orgGuidsList = append(orgGuidsList, helpers.ConvertToString(guid))
 				}
 				spaceGuidsList = nil
-				selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 50", testConfig.GetNamePrefix())
+				selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 				spaceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectSpaceGuidsStatement)
 				for _, guid := range spaceGuids {
 					spaceGuidsList = append(spaceGuidsList, helpers.ConvertToString(guid))

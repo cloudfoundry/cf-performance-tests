@@ -43,10 +43,6 @@ var _ = BeforeSuite(func() {
 	fmt.Printf("%v Starting to seed database with testdata...\n", time.Now().Format(time.RFC850))
 
 	helpers.ImportStoredProcedures(ccdb, ctx, testConfig)
-	if testConfig.DatabaseType == helpers.MysqlDb {
-		helpers.DefineRandomFunction(ccdb, ctx)
-	}
-
 	serviceBrokerId := createServiceBroker(testConfig.GetNamePrefix())
 
 	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
@@ -68,9 +64,10 @@ var _ = BeforeSuite(func() {
 	spacesPerOrg := 1
 	createSpacesStatement := fmt.Sprintf("create_spaces(%d)", spacesPerOrg)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
-	selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY random() LIMIT 1", testConfig.GetNamePrefix())
+	selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY %s LIMIT 1", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
-	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, "SELECT id FROM service_plans ORDER BY random() LIMIT 1")
+	selectRandomServicePlanStatement := fmt.Sprintf("SELECT id FROM service_plans ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
+	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomServicePlanStatement)
 	createServiceInstancesStatement := fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 

@@ -96,10 +96,12 @@ func ImportStoredProcedures(ccdb *sql.DB, ctx context.Context, testConfig Config
 	}
 }
 
-// define "random()" function for MySQL
-func DefineRandomFunction(ccdb *sql.DB, ctx context.Context) {
-	ExecuteStatement(ccdb, ctx, "DROP FUNCTION IF EXISTS random")
-	ExecuteStatement(ccdb, ctx, "CREATE FUNCTION random() RETURNS FLOAT RETURN RAND()")
+func GetRandomFunction(testConfig Config) string {
+	if testConfig.DatabaseType == MysqlDb {
+		return "RAND()"
+	} else {
+		return "random()"
+	}
 }
 
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
