@@ -501,3 +501,40 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_routes_and_route_mappings_for_app(
+    app_guid TEXT,
+    org_name TEXT,
+    space_guid TEXT,
+    num_route_mappings INTEGER
+) RETURNS void AS
+$$
+DECLARE
+    default_domain_id int := 1;
+    quota_id int;
+    space_id int;
+    route_guid text;
+    route_mapping_guid text;
+    process_type text := 'web';
+    host_prefix text := '{{.Prefix}}-';
+    shortened_route_guid text;
+BEGIN
+    SELECT quota_definition_id INTO quota_id FROM organizations WHERE name = org_name;
+    UPDATE quota_definitions SET total_routes = -1 WHERE id = quota_id;
+
+    SELECT id INTO space_id FROM spaces WHERE guid = space_guid;
+
+    FOR _ IN 1..num_route_mappings LOOP
+        route_guid := gen_random_uuid();
+--      shorten guid to be able to map more routes to the app (diego limitation)
+        shortened_route_guid := substring(route_guid FROM 1 FOR 13);
+        INSERT INTO routes (guid, domain_id, space_id, host) VALUES (route_guid, default_domain_id, space_id, host_prefix || shortened_route_guid);
+
+        route_mapping_guid := gen_random_uuid();
+        INSERT INTO route_mappings (guid, app_guid, route_guid, process_type) VALUES (route_mapping_guid, app_guid, route_guid, process_type);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
