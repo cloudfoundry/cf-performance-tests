@@ -107,11 +107,15 @@ func GetRandomFunction(testConfig Config) string {
 func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config) {
 	deleteStatementsPostgres := []string{
 		"DELETE FROM route_mappings USING routes WHERE routes.guid = route_mappings.route_guid AND routes.host LIKE '%s'",
+		"DELETE FROM service_bindings USING apps WHERE apps.guid = service_bindings.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM routes WHERE host LIKE '%s'",
 		"DELETE FROM domain_annotations USING domains WHERE domain_annotations.resource_guid = domains.guid AND domains.name LIKE '%s'",
 		"DELETE FROM domains WHERE name LIKE '%s'",
-		"DELETE FROM service_bindings USING apps WHERE apps.guid = service_bindings.app_guid AND apps.name LIKE '%s'",
-		"DELETE FROM route_mappings USING apps WHERE apps.guid = route_mappings.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM processes USING apps WHERE apps.guid = processes.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM packages USING apps WHERE apps.guid = packages.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM builds USING apps WHERE apps.guid = builds.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM droplets USING apps WHERE apps.guid = droplets.app_guid AND apps.name LIKE '%s'",
+		"DELETE FROM revisions USING apps WHERE apps.guid = revisions.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM apps WHERE name LIKE '%s'",
 		"DELETE FROM service_keys WHERE name LIKE '%s'",
 		"DELETE FROM service_bindings USING service_instances WHERE service_instances.guid = service_bindings.service_instance_guid AND service_instances.name LIKE '%s'",
@@ -144,8 +148,16 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 	}
 	deleteStatementsMySql := []string{
+		"DELETE FROM r_m USING route_mappings r_m, routes r WHERE r.guid = r_m.route_guid AND r.host LIKE '%s'",
+		"DELETE FROM r USING routes r, spaces s WHERE s.id = r.space_id AND s.name LIKE '%s'",
 		"DELETE FROM d_a USING domain_annotations d_a, domains d WHERE d_a.resource_guid = d.guid AND d.name LIKE '%s'",
 		"DELETE FROM domains WHERE name LIKE '%s'",
+		"DELETE FROM p USING processes p, apps a WHERE a.guid = p.app_guid AND a.name LIKE '%s'",
+		"DELETE FROM p USING packages p, apps a WHERE a.guid = p.app_guid AND a.name LIKE '%s'",
+		"DELETE FROM b USING builds b, apps a WHERE a.guid = b.app_guid AND a.name LIKE '%s'",
+		"DELETE FROM d USING droplets d, apps a WHERE a.guid = d.app_guid AND a.name LIKE '%s'",
+		"DELETE FROM r USING revisions r, apps a WHERE a.guid = r.app_guid AND a.name LIKE '%s'",
+		"DELETE FROM apps WHERE name LIKE '%s'",
 		"DELETE FROM service_keys WHERE name LIKE '%s'",
 		"DELETE FROM s_b USING service_bindings s_b, service_instances s_i WHERE s_i.guid = s_b.service_instance_guid AND s_i.name LIKE '%s'",
 		"DELETE FROM service_instances WHERE name LIKE '%s'",
@@ -174,7 +186,6 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM service_brokers WHERE name LIKE '%s'",
 		"DELETE FROM events WHERE actee_name LIKE '%s'",
 		"DELETE FROM events WHERE actee LIKE '%s'",
-		"DELETE FROM apps WHERE name LIKE '%s'",
 		"DELETE FROM quota_definitions WHERE name LIKE '%s'",
 	}
 	nameQuery := fmt.Sprintf("%s-%%", testConfig.GetNamePrefix())
