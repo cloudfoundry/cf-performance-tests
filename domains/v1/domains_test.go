@@ -133,11 +133,11 @@ var _ = Describe("domains", func() {
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
-							domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
-							Expect(domainGUIDs).NotTo(BeNil())
-							domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
+						domainGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/domains")
+						Expect(domainGUIDs).NotTo(BeNil())
+						domainGUID = domainGUIDs[rand.Intn(len(domainGUIDs))]
 
+						experiment.MeasureDuration("DELETE /v3/domains/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/domains/%s", domainGUID))
 
 							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/domains/%s", domainGUID))

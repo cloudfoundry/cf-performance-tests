@@ -117,11 +117,11 @@ var _ = Describe("security groups", func() {
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
-						experiment.MeasureDuration("DELETE /v3/security_groups/:guid", func() {
-							securityGroupGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/security_groups")
-							Expect(securityGroupGUIDs).NotTo(BeNil())
-							securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
+						securityGroupGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/security_groups")
+						Expect(securityGroupGUIDs).NotTo(BeNil())
+						securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
 
+						experiment.MeasureDuration("DELETE /v3/security_groups/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 
 							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
