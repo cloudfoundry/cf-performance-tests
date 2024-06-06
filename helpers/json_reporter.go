@@ -28,10 +28,12 @@ type Measurement struct {
 	Smallest      float64     `json:"Smallest"`
 	Largest       float64     `json:"Largest"`
 	Average       float64     `json:"Average"`
+	Median        float64     `json:"Median"`
 	StdDeviation  float64     `json:"StdDeviation"`
 	SmallestLabel string      `json:"SmallestLabel"`
 	LargestLabel  string      `json:"LargestLabel"`
 	AverageLabel  string      `json:"AverageLabel"`
+	MedianLabel   string      `json:"MedianLabel"`
 	Units         string      `json:"Units"`
 }
 
@@ -76,11 +78,14 @@ func GenerateReports(reporter *JsonReporter, report types.Report) {
 			m.Largest = expStats.DurationBundle[gmeasure.StatMax].Seconds()
 			m.Average = expStats.DurationBundle[gmeasure.StatMean].Seconds()
 			m.StdDeviation = expStats.DurationBundle[gmeasure.StatStdDev].Seconds()
+			m.Median = expStats.DurationBundle[gmeasure.StatMedian].Seconds()
+
 
 			// Attach labels to measurement
 			m.SmallestLabel = "Smallest"
 			m.LargestLabel = "Largest"
 			m.AverageLabel = "Average"
+			m.MedianLabel = "Median"
 			m.Units = "Seconds"
 
 			// Create measurement map structure
