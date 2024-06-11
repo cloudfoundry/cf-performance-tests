@@ -280,7 +280,7 @@ DECLARE
     service_description_prefix TEXT := '{{.Prefix}}-service-description-';
     service_bindable BOOLEAN := true;
     service_plan_guid TEXT;
-    service_plan_name_prefix TEXT := '{{.Prefix}}-service-plan';
+    service_plan_name_prefix TEXT := '{{.Prefix}}-service-plan-';
     service_plan_description_prefix TEXT := '{{.Prefix}}-service-plan-description-';
     service_plan_free BOOLEAN := true;
     latest_service_id INTEGER;

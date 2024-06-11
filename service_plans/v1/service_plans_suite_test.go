@@ -55,17 +55,12 @@ var _ = BeforeSuite(func() {
 	selectOrgsRandomlyStatement := fmt.Sprintf("SELECT id FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY %s LIMIT %d", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig), orgs / 2)
 	ids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgsRandomlyStatement)
 
-	log.Printf("Number of orgs: %v", len(ids))
-	log.Printf("%v", ids[0])
-
 	orgsWithAccessIDs = make([]string, len(ids))
 	for i, v := range ids {
 		if id, ok := v.(int64); ok {
 			orgsWithAccessIDs[i] = strconv.FormatInt(id, 10)
 		}
 	}
-
-	log.Printf("%v", orgsWithAccessIDs[0])
 
 	log.Printf("Creating public service plans...")
 	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, ARRAY[]::integer[])",
