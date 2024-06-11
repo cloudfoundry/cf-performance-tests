@@ -185,6 +185,13 @@ var _ = Describe("service plans", func() {
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						serviceOfferingGuidsList = nil
+						serviceOfferingsStatement := fmt.Sprintf("SELECT guid FROM services ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
+						serviceOfferingGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceOfferingsStatement)
+						for _, guid := range serviceOfferingGuids {
+							serviceOfferingGuidsList = append(serviceOfferingGuidsList, helpers.ConvertToString(guid))
+						}
+
 						experiment.MeasureDuration("GET /v3/service_plans?service_offering_guids=:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
 								"/v3/service_plans?service_offering_guids=%v", strings.Join(serviceOfferingGuidsList[:], ",")))
@@ -244,6 +251,13 @@ var _ = Describe("service plans", func() {
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						serviceInstanceGuidsList = nil
+						serviceInstanceStatement := fmt.Sprintf("SELECT guid FROM service_instances ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
+						serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceInstanceStatement)
+						for _, guid := range serviceInstanceGuids {
+							serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
+						}
+
 						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
 								"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
@@ -258,6 +272,13 @@ var _ = Describe("service plans", func() {
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						serviceInstanceGuidsList = nil
+						serviceInstanceStatement := fmt.Sprintf("SELECT guid FROM service_instances ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
+						serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceInstanceStatement)
+						for _, guid := range serviceInstanceGuids {
+							serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
+						}
+
 						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
 							helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf(
 								"/v3/service_plans?service_instance_guids=%v&per_page=%d",
