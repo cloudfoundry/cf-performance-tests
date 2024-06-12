@@ -51,6 +51,15 @@ var _ = Describe("destinations", func() {
 			})
 		})
 
+		AfterEach(func() {
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+				for _, routeGUID := range routeGUIDs {
+					helpers.TimeCFCurlReturning(testConfig.LongTimeout, "-X", "DELETE", fmt.Sprintf("/v3/routes/%s", routeGUID))
+					helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/routes/%s", routeGUID))
+				}
+			})
+		})
+
 		Context("using a single app", func() {
 			It("creates a new destination", func() {
 				experiment := gmeasure.NewExperiment("POST /v3/routes/:guid/destinations::as admin::using single app")
