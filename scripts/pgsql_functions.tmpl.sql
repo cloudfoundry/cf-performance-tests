@@ -99,7 +99,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION assign_user_as_space_role(
     user_guid TEXT,
     space_role TEXT,
-    num_spaces INTEGER
+    num_spaces INTEGER,
+    orgIDs INTEGER[]
 ) RETURNS void AS
 $$
 DECLARE
@@ -108,7 +109,7 @@ DECLARE
     space_name_query text := '{{.Prefix}}-space-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
-    FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT num_spaces) LOOP
+    FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query AND organization_id = ANY(orgIDs) ORDER BY random() LIMIT num_spaces) LOOP
         EXECUTE FORMAT('INSERT INTO %s (space_id, user_id) VALUES (%s, %s)', space_role, v_space_id, v_user_id);
     END LOOP;
 END;
@@ -165,7 +166,8 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION assign_user_as_org_role(
     user_guid TEXT,
     org_role TEXT,
-    num_orgs INTEGER
+    num_orgs INTEGER,
+    orgIDs INTEGER[]
 ) RETURNS void AS
 $$
 DECLARE
@@ -174,7 +176,7 @@ DECLARE
     org_name_query text := '{{.Prefix}}-org-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
-    FOR v_org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT num_orgs) LOOP
+    FOR v_org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query AND id = ANY(orgIDs) ORDER BY random() LIMIT num_orgs) LOOP
         EXECUTE FORMAT('INSERT INTO %s (organization_id, user_id) VALUES (%s, %s)', org_role, v_org_id, v_user_id);
     END LOOP;
 END;
@@ -268,7 +270,8 @@ CREATE OR REPLACE FUNCTION create_services_and_plans(
     service_broker_id INTEGER,
     num_service_plans INTEGER,
     service_plan_public BOOLEAN,
-    num_visible_orgs INTEGER
+    visible_orgs_per_plan INTEGER,
+    orgIDs INTEGER[]
 ) RETURNS void AS
 $$
 DECLARE
@@ -308,7 +311,7 @@ BEGIN
                    ) RETURNING id INTO latest_service_plan_id;
             INSERT INTO service_plan_visibilities (guid, service_plan_id, organization_id)
                 SELECT gen_random_uuid(), latest_service_plan_id, id
-                FROM organizations ORDER BY random() LIMIT num_visible_orgs;
+                FROM organizations WHERE name LIKE '{{.Prefix}}-org-%' AND id = ANY(orgIDs) ORDER BY random() LIMIT visible_orgs_per_plan;
         END LOOP;
     END LOOP;
 END;

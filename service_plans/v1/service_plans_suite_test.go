@@ -7,6 +7,8 @@ import (
 	"log"
 	"testing"
 	"time"
+	"strconv"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -23,6 +25,7 @@ var testSetup *workflowhelpers.ReproducibleTestSuiteSetup
 var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
+var orgsWithAccessIDs []string
 
 const (
 	orgs                           = 10000
@@ -48,35 +51,74 @@ var _ = BeforeSuite(func() {
 	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgStatement, testConfig)
 
-	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
+	log.Printf("Getting orgs...")
+	selectOrgsRandomlyStatement := fmt.Sprintf("SELECT id FROM organizations WHERE name LIKE '%s-org-%%' ORDER BY %s LIMIT %d", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig), orgs / 2)
+	ids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgsRandomlyStatement)
+
+	log.Printf("Number of orgs: %v", len(ids))
+	log.Printf("%v", ids[0])
+
+	orgsWithAccessIDs = make([]string, len(ids))
+	for i, v := range ids {
+		if id, ok := v.(int64); ok {
+			orgsWithAccessIDs[i] = strconv.FormatInt(id, 10)
+		}
+	}
+
+	log.Printf("%v", orgsWithAccessIDs[0])
+
+	log.Printf("Creating public service plans...")
+	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, ARRAY[]::integer[])",
 		serviceOfferings, serviceBrokerId, servicePlansPublic, true, 0)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPublicServicePlansStatement, testConfig)
 
-	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
+	log.Printf("Creating private service plans without visibilities...")
+	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, ARRAY[]::integer[])",
 		serviceOfferings, serviceBrokerId, servicePlansPrivateWithoutOrgs, false, 0)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansStatement, testConfig)
 
-	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
-		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan)
+	log.Printf("Creating private plans with visibilities...")
+	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, ARRAY[%s]::integer[])",
+		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan, strings.Join(orgsWithAccessIDs, ", "))
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansWithOrgsStatement, testConfig)
 
 	// create service instances incl dependent resources
 	spacesPerOrg := 1
 	createSpacesStatement := fmt.Sprintf("create_spaces(%d)", spacesPerOrg)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
-	selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY %s LIMIT 1", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
+
+	//choose one single space and one single service plan randomly
+	//then create 500 service instances of that service plan in that space
+	//PROBLEM: the selected plan might be of kind "private without orgs" -> user will still see the service instances but cannot see the plans relevant for test: GET /v3/service_plans?service_instance_guids=
+	//selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY %s LIMIT 1", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
+	selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' AND organization_id = ANY(ARRAY[%s]::integer[]) ORDER BY %s LIMIT 1", testConfig.GetNamePrefix(), strings.Join(orgsWithAccessIDs, ", "), helpers.GetRandomFunction(testConfig))
+
 	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
-	selectRandomServicePlanStatement := fmt.Sprintf("SELECT id FROM service_plans ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
+	//selectRandomServicePlanStatement := fmt.Sprintf("SELECT id FROM service_plans ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
+	selectRandomServicePlanStatement := fmt.Sprintf("SELECT service_plan_id FROM service_plan_visibilities WHERE organization_id = ANY(ARRAY[%s]::integer[]) ORDER BY %s LIMIT 1", strings.Join(orgsWithAccessIDs, ", "), helpers.GetRandomFunction(testConfig))
 	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomServicePlanStatement)
 	createServiceInstancesStatement := fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 
+	//assign org_manager to the user for half the number of created orgs randomly
+	//assign space_developer rights to the user for half the number of created spaces randomly
+	//-> actually the user can see service instances if he has a space role, but no org role. But this case cannot exist, because the API won't let you create a space role if no org role exists
+	//BUT: it might be that the user won't get any role in the space and org where the service instances have been created, in which case the user won't see any service instances. Relevant for tests case: GET /v3/service_plans?service_instance_guids=
+	//also relevant for: /v3/service_plans?organization_guids=:guid&space_guids (number of orgs and spaces with assigned roles can vary)
+	//also relevant for: /v3/service_plans?service_offering_guids= (randomly selected service offerings in the test might not be visible to the user
+
+	//TODO: make sure that the plan used for the service instances is orgsPerLimitedServicePlan
+	//		make sure that the service instances get created in an org where the plan has been enabled and where the user has access to (either org or space role)
+	// this should fix the two tests with service instances filter
+
+	//TODO: make sure that the number of visible service plans is always the same for a regular user
+	//probably select orgs randomly assign org role and then assign space role in that org's space?
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs / 2
-	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, ARRAY[%s]::integer[])", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser, strings.Join(orgsWithAccessIDs, ", "))
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 	spacesAssignedToRegularUser := orgs * spacesPerOrg / 2
-	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, ARRAY[%s]::integer[])", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser, strings.Join(orgsWithAccessIDs, ", "))
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)
