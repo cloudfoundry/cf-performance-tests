@@ -63,12 +63,12 @@ var _ = BeforeSuite(func() {
 	}
 
 	log.Printf("Creating public service plans...")
-	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, ARRAY[]::integer[])",
+	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, NULL)",
 		serviceOfferings, serviceBrokerId, servicePlansPublic, true, 0)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPublicServicePlansStatement, testConfig)
 
 	log.Printf("Creating private service plans without visibilities...")
-	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, ARRAY[]::integer[])",
+	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, NULL)",
 		serviceOfferings, serviceBrokerId, servicePlansPrivateWithoutOrgs, false, 0)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansStatement, testConfig)
 

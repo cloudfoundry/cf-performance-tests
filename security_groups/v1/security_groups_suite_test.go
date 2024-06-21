@@ -58,7 +58,7 @@ var _ = BeforeSuite(func() {
 	// assign the regular user to all spaces
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	spacesAssignedToRegularUser := spaces
-	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, NULL)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)
