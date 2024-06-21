@@ -27,14 +27,13 @@ DECLARE
     org_name_query text := '{{.Prefix}}-org-%';
     space_guid text;
     space_name_prefix text := '{{.Prefix}}-space-';
+    space_name_query text := '{{.Prefix}}-space-%';
 BEGIN
-    FOR org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query) LOOP
-        FOR _ IN 1..num_spaces_per_org LOOP
-            space_guid := gen_random_uuid();
-            INSERT INTO spaces (guid, name, organization_id) VALUES (space_guid, space_name_prefix || space_guid, org_id);
-            INSERT INTO space_labels (guid, key_name, resource_guid) VALUES (space_guid, '{{.Prefix}}', space_guid);
-        END LOOP;
+    FOR _ IN 1..num_spaces_per_org LOOP
+        INSERT INTO spaces (guid, name, organization_id) SELECT md5(random()::text || clock_timestamp()::text)::uuid AS guid, space_name_prefix || md5(random()::text) AS name, id AS organization_id FROM organizations WHERE name LIKE org_name_query;
     END LOOP;
+
+    INSERT INTO space_labels (guid, key_name, resource_guid) SELECT guid, '{{.Prefix}}' AS key_name, guid AS resource_guid FROM spaces WHERE name LIKE space_name_query;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -109,9 +108,16 @@ DECLARE
     space_name_query text := '{{.Prefix}}-space-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
-    FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query AND organization_id = ANY(orgIDs) ORDER BY random() LIMIT num_spaces) LOOP
-        EXECUTE FORMAT('INSERT INTO %s (space_id, user_id) VALUES (%s, %s)', space_role, v_space_id, v_user_id);
-    END LOOP;
+
+    IF orgIDs IS NULL OR array_length(orgIDs, 1) = 0 THEN
+        FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT num_spaces) LOOP
+            EXECUTE FORMAT('INSERT INTO %s (space_id, user_id) VALUES (%s, %s)', space_role, v_space_id, v_user_id);
+        END LOOP;
+    ELSE
+        FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query AND organization_id = ANY(orgIDs) ORDER BY random() LIMIT num_spaces) LOOP
+            EXECUTE FORMAT('INSERT INTO %s (space_id, user_id) VALUES (%s, %s)', space_role, v_space_id, v_user_id);
+        END LOOP;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -176,9 +182,16 @@ DECLARE
     org_name_query text := '{{.Prefix}}-org-%';
 BEGIN
     SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
-    FOR v_org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query AND id = ANY(orgIDs) ORDER BY random() LIMIT num_orgs) LOOP
-        EXECUTE FORMAT('INSERT INTO %s (organization_id, user_id) VALUES (%s, %s)', org_role, v_org_id, v_user_id);
-    END LOOP;
+
+    IF orgIDs IS NULL OR array_length(orgIDs, 1) = 0 THEN
+        FOR v_org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random() LIMIT num_orgs) LOOP
+            EXECUTE FORMAT('INSERT INTO %s (organization_id, user_id) VALUES (%s, %s)', org_role, v_org_id, v_user_id);
+        END LOOP;
+    ELSE
+        FOR v_org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query AND id = ANY(orgIDs) ORDER BY random() LIMIT num_orgs) LOOP
+            EXECUTE FORMAT('INSERT INTO %s (organization_id, user_id) VALUES (%s, %s)', org_role, v_org_id, v_user_id);
+        END LOOP;
+    END IF;
 END;
 $$ LANGUAGE plpgsql;
 

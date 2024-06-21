@@ -44,24 +44,24 @@ var _ = BeforeSuite(func() {
 	// assign the regular user multiple org roles in each 10% of the orgs
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs / 10
-	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, NULL)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
-	assignUserAsOrgBillingManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_billing_managers", orgsAssignedToRegularUser)
+	assignUserAsOrgBillingManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, NULL)", regularUserGUID, "organizations_billing_managers", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgBillingManager, testConfig)
-	assignUserAsOrgAuditor := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_auditors", orgsAssignedToRegularUser)
+	assignUserAsOrgAuditor := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, NULL)", regularUserGUID, "organizations_auditors", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgAuditor, testConfig)
-	assignUserAsOrgUser := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_users", orgsAssignedToRegularUser)
+	assignUserAsOrgUser := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, NULL)", regularUserGUID, "organizations_users", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgUser, testConfig)
 
 	// assign the regular user multiple space roles in each 10% of the spaces
 	spacesAssignedToRegularUser := orgs * spacesPerOrg / 10
-	assignUserAsSpaceManager := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_managers", spacesAssignedToRegularUser)
+	assignUserAsSpaceManager := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, NULL)", regularUserGUID, "spaces_managers", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceManager, testConfig)
-	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, NULL)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
-	assignUserAsSpaceSupporter := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_supporters", spacesAssignedToRegularUser)
+	assignUserAsSpaceSupporter := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, NULL)", regularUserGUID, "spaces_supporters", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceSupporter, testConfig)
-	assignUserAsSpaceAuditor := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_auditors", spacesAssignedToRegularUser)
+	assignUserAsSpaceAuditor := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, NULL)", regularUserGUID, "spaces_auditors", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceAuditor, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)
