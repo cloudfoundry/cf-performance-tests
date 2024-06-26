@@ -1,29 +1,14 @@
 CREATE PROCEDURE create_spaces(num_spaces_per_org INT)
 BEGIN
-    DECLARE org_id INT;
-    DECLARE space_guid VARCHAR(255);
-    DECLARE counter INT;
-    DECLARE finished BOOLEAN DEFAULT FALSE;
-    DECLARE orgs_cursor CURSOR FOR SELECT id FROM organizations WHERE name LIKE '{{.Prefix}}-org-%';
-    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
+    DECLARE _counter INT DEFAULT 0;
 
-    OPEN orgs_cursor;
-    org_loop:
-    LOOP
-        FETCH orgs_cursor INTO org_id;
-        IF finished = TRUE THEN
-            LEAVE org_loop;
-        END IF;
-        SET counter = 0;
-        WHILE counter < num_spaces_per_org
-            DO
-                SET counter = counter + 1;
-                SET space_guid = uuid();
-                INSERT INTO spaces (guid, name, organization_id)
-                VALUES (space_guid, CONCAT('{{.Prefix}}-space-', space_guid), org_id);
-                INSERT INTO space_labels (guid, key_name, resource_guid)
-                VALUES (space_guid, '{{.Prefix}}', space_guid);
-            END WHILE;
-    END LOOP;
-    CLOSE orgs_cursor;
+    WHILE _counter < num_spaces_per_org DO
+        INSERT INTO spaces (guid, name, organization_id)
+        SELECT UUID(), CONCAT('{{.Prefix}}-space-', UUID()), id
+        FROM organizations WHERE name LIKE '{{.Prefix}}-org-%';
+        SET _counter = _counter + 1;
+    END WHILE;
+
+    INSERT INTO space_labels (guid, key_name, resource_guid)
+    SELECT guid, '{{.Prefix}}', guid FROM spaces WHERE name LIKE CONCAT('{{.Prefix}}-space-%');
 END;
