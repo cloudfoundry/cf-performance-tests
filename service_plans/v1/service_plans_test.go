@@ -263,7 +263,7 @@ var _ = Describe("service plans", func() {
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
 						var orgGuidsList []string = nil
-						selectOrgGuidsStatement := fmt.Sprintf("SELECT guid FROM organizations WHERE name LIKE '%s-org-%%' AND id = ANY(ARRAY[%s]::integer[]) ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), strings.Join(orgsWithAccessIDs, ", "), helpers.GetRandomFunction(testConfig))
+						selectOrgGuidsStatement := fmt.Sprintf("SELECT organizations.guid FROM organizations JOIN selected_orgs ON organizations.id = selected_orgs.id ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
 						orgGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgGuidsStatement)
 						for _, guid := range orgGuids {
 							orgGuidsList = append(orgGuidsList, helpers.ConvertToString(guid))
@@ -271,7 +271,7 @@ var _ = Describe("service plans", func() {
 						Expect(len(orgGuidsList)).To(Equal(50))
 
 						var spaceGuidsList []string = nil
-						selectSpaceGuidsStatement := fmt.Sprintf("SELECT guid FROM spaces WHERE name LIKE '%s-space-%%' AND organization_id = ANY(ARRAY[%s]::integer[]) ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), strings.Join(orgsWithAccessIDs, ", "), helpers.GetRandomFunction(testConfig))
+						selectSpaceGuidsStatement := fmt.Sprintf("SELECT spaces.guid FROM spaces JOIN selected_orgs ON spaces.organization_id = selected_orgs.id ORDER BY %s LIMIT 50", helpers.GetRandomFunction(testConfig))
 						spaceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectSpaceGuidsStatement)
 						for _, guid := range spaceGuids {
 							spaceGuidsList = append(spaceGuidsList, helpers.ConvertToString(guid))
@@ -291,6 +291,7 @@ var _ = Describe("service plans", func() {
 })
 
 func getRandomLimitedServicePlanGuid() string {
+	// currently all service plan visibilities are for orgs the user has access to
 	servicePlanGUIDsStatement := fmt.Sprintf("SELECT s_p.guid FROM service_plans s_p INNER JOIN service_plan_visibilities s_p_v ON s_p.id = s_p_v.service_plan_id WHERE s_p.name LIKE '%s-service-plan-%%' ORDER BY %s LIMIT 1", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 	servicePlanGUIDs := helpers.ExecuteSelectStatement(ccdb, ctx, servicePlanGUIDsStatement)
 	return helpers.ConvertToString(servicePlanGUIDs[0])
@@ -299,6 +300,7 @@ func getRandomLimitedServicePlanGuid() string {
 func getRandomServiceInstanceGUIDs() []string {
 	var serviceInstanceGuidsList []string = nil
 
+	// all service instances are being created in a space the user has access to
 	serviceInstanceStatement := fmt.Sprintf("SELECT guid FROM service_instances WHERE name LIKE '%s-service-instance-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 	serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceInstanceStatement)
 	for _, guid := range serviceInstanceGuids {
@@ -312,6 +314,7 @@ func getRandomServiceInstanceGUIDs() []string {
 
 func getRandomServiceOfferingGUIDs() []string {
 	var serviceOfferingGuidsList []string = nil
+	// join service plan visibilities because currently all service plan visibilities are for orgs the user has access to
 	serviceOfferingsStatement := fmt.Sprintf("SELECT services.guid FROM services JOIN service_plans ON services.id = service_plans.service_id JOIN service_plan_visibilities ON service_plans.id = service_plan_visibilities.service_plan_id WHERE service_plans.name LIKE '%s-service-plan-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 
 	serviceOfferingGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceOfferingsStatement)

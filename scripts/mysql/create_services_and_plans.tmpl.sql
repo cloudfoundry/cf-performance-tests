@@ -2,7 +2,8 @@ CREATE PROCEDURE create_services_and_plans(num_services INT,
                                            service_broker_id INT,
                                            num_service_plans INT,
                                            service_plan_public BOOLEAN,
-                                           num_visible_orgs INT)
+                                           num_visible_orgs INT,
+                                           orgIDs BLOB)
 BEGIN
     DECLARE service_guid VARCHAR(255);
     DECLARE service_bindable BOOLEAN DEFAULT TRUE;
@@ -31,7 +32,7 @@ BEGIN
                     SET service_plan_guid := UUID();
                     INSERT INTO service_plans (guid, name, description, free, service_id, unique_id, public)
                     VALUES (service_plan_guid,
-                            CONCAT('{{.Prefix}}-service-plan', service_plan_guid),
+                            CONCAT('{{.Prefix}}-service-plan-', service_plan_guid),
                             CONCAT('{{.Prefix}}-service-plan-description-', service_plan_guid),
                             service_plan_free,
                             latest_service_id,
@@ -40,7 +41,7 @@ BEGIN
                     SET latest_service_plan_id = LAST_INSERT_ID();
                     INSERT INTO service_plan_visibilities (guid, service_plan_id, organization_id)
                     SELECT UUID(), latest_service_plan_id, id
-                    FROM organizations
+                    FROM selected_orgs
                     ORDER BY RAND()
                     LIMIT num_visible_orgs;
                 END WHILE;

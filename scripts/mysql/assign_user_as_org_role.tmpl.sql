@@ -1,11 +1,15 @@
-CREATE PROCEDURE assign_user_as_org_role(user_guid VARCHAR(255), org_role VARCHAR(255), num_orgs INT)
+CREATE PROCEDURE assign_user_as_org_role(
+    IN user_guid VARCHAR(255),
+    IN org_role VARCHAR(255),
+    IN num_orgs INT,
+    IN orgIDs TEXT
+)
 BEGIN
     DECLARE v_user_id INT;
     DECLARE v_org_id INT;
     DECLARE finished BOOLEAN DEFAULT FALSE;
     DECLARE orgs_cursor CURSOR FOR SELECT id
-                                   FROM organizations
-                                   WHERE name LIKE '{{.Prefix}}-org-%'
+                                   FROM selected_orgs
                                    ORDER BY RAND()
                                    LIMIT num_orgs;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;

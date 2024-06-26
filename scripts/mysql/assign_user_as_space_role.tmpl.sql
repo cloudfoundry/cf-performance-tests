@@ -1,10 +1,16 @@
-CREATE PROCEDURE assign_user_as_space_role(user_guid VARCHAR(255), space_role VARCHAR(255), num_spaces INT)
+CREATE PROCEDURE assign_user_as_space_role(
+    user_guid VARCHAR(255),
+    space_role VARCHAR(255),
+    num_spaces INT,
+    orgIDs TEXT)
 BEGIN
     DECLARE v_user_id INT;
     DECLARE v_space_id INT;
     DECLARE finished BOOLEAN DEFAULT FALSE;
-    DECLARE spaces_cursor CURSOR FOR SELECT id
+    DECLARE spaces_cursor CURSOR FOR SELECT spaces.id
                                      FROM spaces
+                                     JOIN selected_orgs
+                                     ON spaces.organization_id = selected_orgs.id
                                      WHERE name LIKE '{{.Prefix}}-space-%'
                                      ORDER BY RAND()
                                      LIMIT num_spaces;
