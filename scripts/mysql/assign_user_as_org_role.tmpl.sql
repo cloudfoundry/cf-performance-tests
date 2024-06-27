@@ -1,8 +1,7 @@
 CREATE PROCEDURE assign_user_as_org_role(
     IN user_guid VARCHAR(255),
     IN org_role VARCHAR(255),
-    IN num_orgs INT,
-    IN orgIDs TEXT
+    IN num_orgs INT
 )
 BEGIN
     DECLARE v_user_id INT;

@@ -1,8 +1,7 @@
 CREATE PROCEDURE assign_user_as_space_role(
     user_guid VARCHAR(255),
     space_role VARCHAR(255),
-    num_spaces INT,
-    orgIDs TEXT)
+    num_spaces INT)
 BEGIN
     DECLARE v_user_id INT;
     DECLARE v_space_id INT;

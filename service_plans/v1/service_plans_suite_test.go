@@ -7,8 +7,6 @@ import (
 	"log"
 	"testing"
 	"time"
-	"strconv"
-	"strings"
 
 	"github.com/google/uuid"
 
@@ -57,43 +55,19 @@ var _ = BeforeSuite(func() {
 	selectOrgsRandomlyStatement := fmt.Sprintf("create_selected_orgs_table(%d)", orgs / 2)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, selectOrgsRandomlyStatement, testConfig)
 
-	// instead of fetching random org ids from the organizations table, create a table with the stored procedure containing org ids
-	// then get all the org ids from that table and use it in below functions (for postgres)
-	// for mysql the procedures can read directly from the DB
-	// unclear if this works for all tests
-	log.Printf("Getting orgs...")
-	selectOrgsStatement := fmt.Sprintf("SELECT id FROM selected_orgs ORDER BY %s LIMIT %d", helpers.GetRandomFunction(testConfig), orgs / 2)
-	ids := helpers.ExecuteSelectStatement(ccdb, ctx, selectOrgsStatement)
-
-	orgsWithAccessIDs = make([]string, len(ids))
-	for i, v := range ids {
-		if id, ok := v.(int64); ok {
-			orgsWithAccessIDs[i] = strconv.FormatInt(id, 10)
-		} else if id, ok := v.([]uint8); ok {
-			orgsWithAccessIDs[i] = string(id)
-		}
-	}
-
-	// mysql does not support passing arrays into procedures
-	if testConfig.DatabaseType == helpers.PsqlDb {
-		orgsFilter = fmt.Sprintf("ARRAY[%s]::integer[]", strings.Join(orgsWithAccessIDs, ", "))
-	} else {
-		orgsFilter = "NULL"
-	}
-
 	log.Printf("Creating public service plans...")
-	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, NULL)",
+	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
 		serviceOfferings, serviceBrokerId, servicePlansPublic, true, 0)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPublicServicePlansStatement, testConfig)
 
 	log.Printf("Creating private service plans without visibilities...")
-	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, NULL)",
+	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
 		serviceOfferings, serviceBrokerId, servicePlansPrivateWithoutOrgs, false, 0)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansStatement, testConfig)
 
 	log.Printf("Creating private plans with visibilities...")
-	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, %s)",
-		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan, orgsFilter)
+	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
+		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansWithOrgsStatement, testConfig)
 
 	// create service instances incl dependent resources
@@ -128,10 +102,10 @@ var _ = BeforeSuite(func() {
 	//probably select orgs randomly assign org role and then assign space role in that org's space?
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs / 2
-	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, %s)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser, orgsFilter)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 	spacesAssignedToRegularUser := orgs * spacesPerOrg / 2
-	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d, %s)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser, orgsFilter)
+	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)
