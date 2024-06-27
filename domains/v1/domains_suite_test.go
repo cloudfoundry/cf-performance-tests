@@ -40,6 +40,10 @@ var _ = BeforeSuite(func() {
 	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgStatement, testConfig)
 
+	// copy ids of orgs relevant for regular user
+	selectOrgsRandomlyStatement := fmt.Sprintf("create_selected_orgs_table(%d)", orgs)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, selectOrgsRandomlyStatement, testConfig)
+
 	// create shared domains
 	createSharedDomainsStatement := fmt.Sprintf("create_shared_domains(%d)", sharedDomains)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createSharedDomainsStatement, testConfig)
@@ -51,7 +55,7 @@ var _ = BeforeSuite(func() {
 	// assign the regular user to all orgs
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
 	orgsAssignedToRegularUser := orgs
-	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d, NULL)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 
 	helpers.AnalyzeDB(ccdb, ctx, testConfig)

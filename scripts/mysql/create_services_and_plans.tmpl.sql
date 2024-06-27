@@ -2,8 +2,7 @@ CREATE PROCEDURE create_services_and_plans(num_services INT,
                                            service_broker_id INT,
                                            num_service_plans INT,
                                            service_plan_public BOOLEAN,
-                                           num_visible_orgs INT,
-                                           orgIDs BLOB)
+                                           num_visible_orgs INT)
 BEGIN
     DECLARE service_guid VARCHAR(255);
     DECLARE service_bindable BOOLEAN DEFAULT TRUE;
