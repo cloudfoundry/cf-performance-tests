@@ -52,7 +52,9 @@ var _ = BeforeSuite(func() {
 	createOrgStatement := fmt.Sprintf("create_orgs(%d)", orgs)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createOrgStatement, testConfig)
 
-	selectOrgsRandomlyStatement := fmt.Sprintf("create_selected_orgs_table(%d)", orgs / 2)
+	orgsAssignedToRegularUser := orgs / 2
+
+	selectOrgsRandomlyStatement := fmt.Sprintf("create_selected_orgs_table(%d)", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, selectOrgsRandomlyStatement, testConfig)
 
 	log.Printf("Creating public service plans...")
@@ -76,32 +78,19 @@ var _ = BeforeSuite(func() {
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
 
 	//choose one single space and one single service plan randomly
-	//then create 500 service instances of that service plan in that space
-	//PROBLEM: the selected plan might be of kind "private without orgs" -> user will still see the service instances but cannot see the plans relevant for test: GET /v3/service_plans?service_instance_guids=
-	//selectRandomSpaceStatement := fmt.Sprintf("SELECT id FROM spaces WHERE name LIKE '%s-space-%%' ORDER BY %s LIMIT 1", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 	selectRandomSpaceStatement := fmt.Sprintf("SELECT spaces.id FROM spaces JOIN selected_orgs ON spaces.organization_id = selected_orgs.id ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
-
 	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
+
 	selectRandomServicePlanStatement := fmt.Sprintf("SELECT s_p_v.service_plan_id FROM service_plan_visibilities AS s_p_v JOIN selected_orgs AS s_o ON s_p_v.organization_id = s_o.id ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
 	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomServicePlanStatement)
+
 	createServiceInstancesStatement := fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
 
 	//assign org_manager to the user for half the number of created orgs randomly
-	//assign space_developer rights to the user for half the number of created spaces randomly
-	//-> actually the user can see service instances if he has a space role, but no org role. But this case cannot exist, because the API won't let you create a space role if no org role exists
-	//BUT: it might be that the user won't get any role in the space and org where the service instances have been created, in which case the user won't see any service instances. Relevant for tests case: GET /v3/service_plans?service_instance_guids=
-	//also relevant for: /v3/service_plans?organization_guids=:guid&space_guids (number of orgs and spaces with assigned roles can vary)
-	//also relevant for: /v3/service_plans?service_offering_guids= (randomly selected service offerings in the test might not be visible to the user
-
-	//TODO: make sure that the plan used for the service instances is orgsPerLimitedServicePlan
-	//		make sure that the service instances get created in an org where the plan has been enabled and where the user has access to (either org or space role)
-	// this should fix the two tests with service instances filter
-
-	//TODO: make sure that the number of visible service plans is always the same for a regular user
-	//probably select orgs randomly assign org role and then assign space role in that org's space?
+	//assign space_developer rights to the user for all spaces within the orgs where the user received permissions
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
-	orgsAssignedToRegularUser := orgs / 2
+
 	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgsAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
 	spacesAssignedToRegularUser := orgs * spacesPerOrg / 2
