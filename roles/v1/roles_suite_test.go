@@ -21,6 +21,8 @@ var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	orgs = 100000
@@ -88,7 +90,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Roles test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "roles", "roles"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "roles", "roles", test_version), report)
 })
 
 func TestRoles(t *testing.T) {

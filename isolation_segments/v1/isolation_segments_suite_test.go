@@ -21,6 +21,8 @@ var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	orgs              = 20000
@@ -79,7 +81,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Isolation segments test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "isolation-segments", "isolation segments"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "isolation-segments", "isolation segments", test_version), report)
 })
 
 func TestIsolationSegments(t *testing.T) {

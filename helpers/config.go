@@ -84,10 +84,10 @@ func (config Config) GetScaledTimeout(t time.Duration) time.Duration { return t 
 func (config Config) GetResultsFolder() string                       { return config.ResultsFolder }
 func (config Config) GetAddExistingUserToExistingSpace() bool        { return false }
 
-func ConfigureJsonReporter(testConfig *Config, testSuiteName string, testHeadlineName string) *JsonReporter {
+func ConfigureJsonReporter(testConfig *Config, testSuiteName string, testHeadlineName string, test_version string) *JsonReporter {
 	err := viper.ReadInConfig()
 
-	resultsFolder := fmt.Sprintf("%s/%s-test-results/v1", testConfig.GetResultsFolder(), testSuiteName)
+	resultsFolder := fmt.Sprintf("%s/%s-test-results/%s", testConfig.GetResultsFolder(), testSuiteName, test_version)
 	err = os.MkdirAll(resultsFolder, os.ModePerm)
 	if err != nil {
 		log.Fatalf("Cannot create Directory: %s", err.Error())

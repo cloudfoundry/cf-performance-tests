@@ -23,6 +23,8 @@ var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	orgs   = 4
@@ -99,7 +101,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Audit events test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "audit-events", "audit events"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "audit-events", "audit events", test_version), report)
 })
 
 func TestAuditEvents(t *testing.T) {

@@ -21,6 +21,8 @@ var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	spaces         = 500
@@ -85,7 +87,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Security groups test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "security-groups", "security groups"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "security-groups", "security groups", test_version), report)
 })
 
 func TestSecurityGroups(t *testing.T) {

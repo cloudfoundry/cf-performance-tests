@@ -21,6 +21,8 @@ var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	orgs           = 20000
@@ -78,7 +80,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Domains test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "domains", "domains"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "domains", "domains", test_version), report)
 })
 
 func TestDomains(t *testing.T) {
