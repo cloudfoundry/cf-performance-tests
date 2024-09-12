@@ -26,6 +26,8 @@ var ctx context.Context
 var orgsWithAccessIDs []string
 var orgsFilter string
 
+const test_version = "v2"
+
 const (
 	orgs                           = 10000
 	serviceOfferings               = 300
@@ -119,7 +121,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Service plans test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "service-plans", "service plans"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "service-plans", "service plans", test_version), report)
 })
 
 func TestServicePlans(t *testing.T) {

@@ -25,6 +25,8 @@ var ctx context.Context
 var org_guid = uuid.NewString()
 var space_guid = uuid.NewString()
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	users = 10000
@@ -60,7 +62,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Users test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "users", "users"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "users", "users", test_version), report)
 })
 
 func TestUsers(t *testing.T) {

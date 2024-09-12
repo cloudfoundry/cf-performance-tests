@@ -30,6 +30,8 @@ var appName1 string
 var appName2 string
 var spaceGuid string
 
+const test_version = "v1"
+
 // diego seems to have a limitation here
 // when binding more routes to an app the app does not start, or it will fail during staging already
 const (
@@ -117,7 +119,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Destinations test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "destinations", "destinations"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "destinations", "destinations", test_version), report)
 })
 
 func TestDestinations(t *testing.T) {

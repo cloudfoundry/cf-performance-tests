@@ -26,6 +26,8 @@ var ctx context.Context
 var spaceWithUnlimitedServiceKeysGUID string
 var spaceWithExhaustedServiceKeysGUID string
 
+const test_version = "v1"
+
 const (
 	// main test parameters:
 	serviceInstancesPerSpace      = 5000 // i.e. 10000 in 2 spaces
@@ -136,7 +138,7 @@ var _ = AfterSuite(func() {
 })
 
 var _ = ReportAfterSuite("Service keys test suite", func(report types.Report) {
-	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "service-keys", "service keys"), report)
+	helpers.GenerateReports(helpers.ConfigureJsonReporter(&testConfig, "service-keys", "service keys", test_version), report)
 })
 
 func TestServiceKeys(t *testing.T) {
