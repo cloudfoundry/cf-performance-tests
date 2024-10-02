@@ -21,7 +21,7 @@ var ccdb *sql.DB
 var uaadb *sql.DB
 var ctx context.Context
 
-const test_version = "v1"
+const test_version = "v2"
 
 const (
 	// main test parameters:
