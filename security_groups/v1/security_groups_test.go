@@ -2,13 +2,11 @@ package security_groups
 
 import (
 	"fmt"
-	"math/rand"
 	"strings"
 
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
 
-	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gmeasure"
 
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
@@ -56,17 +54,15 @@ var _ = Describe("security groups", func() {
 			})
 		})
 
+		//selected space guids could contain spaces without any security groups -> only half of spaces have security groups assigned
 		It(fmt.Sprintf("as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func() {
-			spaceGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/spaces?per_page=%d&label_selector=%s", testConfig.LargeElementsFilter, testConfig.TestResourcePrefix))
-			Expect(spaceGUIDs).NotTo(BeNil())
-			Expect(len(spaceGUIDs)).To(Equal(testConfig.LargeElementsFilter))
-			spaceGUIDs = helpers.Shuffle(spaceGUIDs)
-
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/security_groups::as admin with space filter containing %d spaces", testConfig.LargeElementsFilter))
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 				experiment.Sample(func(idx int) {
+					spaceGUIDs := getRandomSpacesWithSecurityGroups()
+
 					experiment.MeasureDuration("GET /v3/security_groups", func() {
 						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/security_groups?running_space_guids=%s", strings.Join(spaceGUIDs, ",")))
 					})
@@ -77,19 +73,14 @@ var _ = Describe("security groups", func() {
 
 	Describe("individually", func() {
 		Describe("as admin", func() {
-			var securityGroupGUID string
-			BeforeEach(func() {
-				securityGroupGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/security_groups")
-				Expect(securityGroupGUIDs).NotTo(BeNil())
-				securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
-			})
-
 			It("gets /v3/security_groups/:guid as admin", func() {
 				experiment := gmeasure.NewExperiment("individually::as admin::GET /v3/security_groups/:guid")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						securityGroupGUID := getRandomSecurityGroup()
+
 						experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
@@ -103,6 +94,8 @@ var _ = Describe("security groups", func() {
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						securityGroupGUID := getRandomSecurityGroup()
+
 						experiment.MeasureDuration("PATCH /v3/security_groups/:guid", func() {
 							data := fmt.Sprintf(`{"name":"%s-updated-security-group-%s"}`, testConfig.GetNamePrefix(), securityGroupGUID)
 							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "PATCH", "-d", data, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
@@ -117,15 +110,13 @@ var _ = Describe("security groups", func() {
 
 				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						securityGroupGUID := getRandomSecurityGroup()
+
 						experiment.MeasureDuration("DELETE /v3/security_groups/:guid", func() {
-							securityGroupGUIDs := helpers.GetGUIDs(testSetup.AdminUserContext(), testConfig, "/v3/security_groups")
-							Expect(securityGroupGUIDs).NotTo(BeNil())
-							securityGroupGUID = securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
-
 							helpers.TimeCFCurl(testConfig.BasicTimeout, "-X", "DELETE", fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
-
-							helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
+
+						helpers.WaitToFail(testSetup.AdminUserContext(), testConfig, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
 			})
@@ -133,15 +124,13 @@ var _ = Describe("security groups", func() {
 
 		Describe("as regular user", func() {
 			It("gets /v3/security_groups/:guid as regular user", func() {
-				securityGroupGUIDs := helpers.GetGUIDs(testSetup.RegularUserContext(), testConfig, "/v3/security_groups")
-				Expect(securityGroupGUIDs).NotTo(BeNil())
-				securityGroupGUID := securityGroupGUIDs[rand.Intn(len(securityGroupGUIDs))]
-
 				experiment := gmeasure.NewExperiment("individually::as regular user::GET /v3/security_groups/:guid")
 				AddReportEntry(experiment.Name, experiment)
 
 				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
 					experiment.Sample(func(idx int) {
+						securityGroupGUID := getRandomSecurityGroup()
+
 						experiment.MeasureDuration("GET /v3/security_groups/:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf("/v3/security_groups/%s", securityGroupGUID))
 						})
@@ -151,3 +140,26 @@ var _ = Describe("security groups", func() {
 		})
 	})
 })
+
+func getRandomSecurityGroup() string {
+	var securityGroupGuid string
+	securityGroupStatement := fmt.Sprintf("SELECT guid FROM security_groups JOIN security_groups_spaces ON security_groups.id = security_groups_spaces.security_group_id ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
+	securityGroupGuids := helpers.ExecuteSelectStatement(ccdb, ctx, securityGroupStatement)
+	for _, guid := range securityGroupGuids {
+		securityGroupGuid = helpers.ConvertToString(guid)
+	}
+
+	return helpers.ConvertToString(securityGroupGuid)
+}
+
+func getRandomSpacesWithSecurityGroups() []string {
+	var spaceGuidsList []string = nil
+	spaceStatement := fmt.Sprintf("SELECT guid FROM spaces JOIN security_groups_spaces ON spaces.id = security_groups_spaces.space_id ORDER BY %s LIMIT %d", helpers.GetRandomFunction(testConfig), testConfig.LargeElementsFilter)
+	spaceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, spaceStatement)
+
+	for _, guid := range spaceGuids {
+		spaceGuidsList = append(spaceGuidsList, helpers.ConvertToString(guid))
+	}
+
+	return spaceGuidsList
+}

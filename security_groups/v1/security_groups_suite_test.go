@@ -61,8 +61,11 @@ var _ = BeforeSuite(func() {
 	assignSecurityGroupsToSpacesStatement := fmt.Sprintf("assign_security_groups_to_spaces(%d, %d)", spacesWithSecurityGroups, securityGroupsPerSpace)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignSecurityGroupsToSpacesStatement, testConfig)
 
-	// assign the regular user to all spaces
 	regularUserGUID := helpers.GetUserGUID(testSetup.RegularUserContext(), testConfig)
+	assignUserAsOrgManager := fmt.Sprintf("assign_user_as_org_role('%s', '%s', %d)", regularUserGUID, "organizations_managers", orgs)
+	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsOrgManager, testConfig)
+
+	// assign the regular user to all spaces
 	spacesAssignedToRegularUser := spaces
 	assignUserAsSpaceDeveloper := fmt.Sprintf("assign_user_as_space_role('%s', '%s', %d)", regularUserGUID, "spaces_developers", spacesAssignedToRegularUser)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, assignUserAsSpaceDeveloper, testConfig)
