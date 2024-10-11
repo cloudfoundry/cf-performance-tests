@@ -54,7 +54,6 @@ var _ = Describe("security groups", func() {
 			})
 		})
 
-		//selected space guids could contain spaces without any security groups -> only half of spaces have security groups assigned
 		It(fmt.Sprintf("as admin with space filter containing %d spaces", testConfig.LargeElementsFilter), func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/security_groups::as admin with space filter containing %d spaces", testConfig.LargeElementsFilter))
 			AddReportEntry(experiment.Name, experiment)
