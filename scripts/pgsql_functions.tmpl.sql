@@ -105,7 +105,6 @@ DECLARE
     v_security_group_id int;
     security_group_name_query text := '{{.Prefix}}-security-group-%';
 BEGIN
--- it can happen that a security group is not assigned to any space or that one security group is assigned to the max number
     FOR v_security_group_id IN (SELECT id FROM security_groups WHERE name LIKE security_group_name_query ORDER BY random() LIMIT num_security_groups_per_space) LOOP
         FOR v_space_id IN (SELECT id FROM spaces WHERE name LIKE space_name_query ORDER BY random() LIMIT num_spaces) LOOP
             INSERT INTO security_groups_spaces (security_group_id, space_id) VALUES (v_security_group_id, v_space_id);
