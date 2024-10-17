@@ -9,7 +9,6 @@ BEGIN
     DECLARE events_guid VARCHAR(255);
     DECLARE finished BOOLEAN DEFAULT FALSE;
     DECLARE events_cursor CURSOR FOR SELECT audit_event_type, count_events FROM event_types;
-    DECLARE import_cursor CURSOR FOR SELECT ean, sku, mpn, manufacturerName, manufacturerUniqueId, images FROM importjob;
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = TRUE;
     -- create a temporary table where the events will be stored "temporarily", is faster than inserting directly to events
     CREATE TEMPORARY TABLE IF NOT EXISTS temp_events as select * from events;
