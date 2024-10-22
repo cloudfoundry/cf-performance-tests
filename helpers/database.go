@@ -114,6 +114,7 @@ func CleanupTestData(ccdb, uaadb *sql.DB, ctx context.Context, testConfig Config
 		"DELETE FROM processes USING apps WHERE apps.guid = processes.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM packages USING apps WHERE apps.guid = packages.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM builds USING apps WHERE apps.guid = builds.app_guid AND apps.name LIKE '%s'",
+		"UPDATE apps SET droplet_guid = NULL WHERE droplet_guid IN (SELECT droplet_guid FROM droplets WHERE app_guid LIKE '%s');",
 		"DELETE FROM droplets USING apps WHERE apps.guid = droplets.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM revisions USING apps WHERE apps.guid = revisions.app_guid AND apps.name LIKE '%s'",
 		"DELETE FROM apps WHERE name LIKE '%s'",
