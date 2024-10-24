@@ -6,6 +6,7 @@ import (
 	"github.com/cloudfoundry/cf-performance-tests/helpers"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
 	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gmeasure"
 )
 
@@ -57,8 +58,8 @@ var _ = Describe("audit_events", func() {
 			})
 		})
 
-		It(fmt.Sprintf("as admin with types filter and page size 5"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types filter & page size 5"))
+		It("as admin with types filter and page size 5", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/audit_events::as admin with types filter & page size 5")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -70,8 +71,8 @@ var _ = Describe("audit_events", func() {
 			})
 		})
 
-		It(fmt.Sprintf("as admin with types filter and page size 50"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with types filter & page size 50"))
+		It("as admin with types filter and page size 50", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/audit_events::as admin with types filter & page size 50")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -96,11 +97,10 @@ var _ = Describe("audit_events", func() {
 			})
 		})
 
-		It(fmt.Sprintf("as admin with target_guids"), func() {
-
+		It("as admin with target_guids", func() {
 			selectAppGuidsStatement := fmt.Sprintf("SELECT guid FROM apps WHERE name LIKE '%s-app-%%' LIMIT 1", testConfig.GetNamePrefix())
 			appGuids := helpers.ExecuteSelectStatement(ccdb, ctx, selectAppGuidsStatement)
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with target_guids &page=1&per_page=5&order_by=-created_at"))
+			experiment := gmeasure.NewExperiment("GET /v3/audit_events::as admin with target_guids &page=1&per_page=5&order_by=-created_at")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
@@ -112,14 +112,36 @@ var _ = Describe("audit_events", func() {
 			})
 		})
 
-		It(fmt.Sprintf("as admin with created_ats [gt]"), func() {
-			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/audit_events::as admin with created_ats [gt]"))
+		It("as admin with created_ats [gt]", func() {
+			experiment := gmeasure.NewExperiment("GET /v3/audit_events::as admin with created_ats [gt]")
 			AddReportEntry(experiment.Name, experiment)
 
 			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/audit_events", func() {
-						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/audit_events?types=audit.organization.update&created_ats[gt]=2022-11-14T08:13:01Z"))
+						helpers.TimeCFCurl(testConfig.LongTimeout, "/v3/audit_events?types=audit.organization.update&created_ats[gt]=2022-11-14T08:13:01Z")
+					})
+				}, gmeasure.SamplingConfig{N: testConfig.Samples})
+			})
+		})
+
+		It("as admin getting the last page", func() {
+			var pages int
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+				exitCode, body := helpers.TimeCFCurlReturning(testConfig.LongTimeout, "/v3/audit_events")
+				Expect(exitCode).To(Equal(0))
+				Expect(body).To(ContainSubstring("200 OK"))
+				response := helpers.ParseResponseBody(helpers.RemoveDebugOutput(body))
+				pages = response.Pagination.TotalPages
+			})
+
+			experiment := gmeasure.NewExperiment("GET /v3/audit_events::as admin getting the last page")
+			AddReportEntry(experiment.Name, experiment)
+
+			workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.LongTimeout, func() {
+				experiment.Sample(func(idx int) {
+					experiment.MeasureDuration("GET /v3/audit_events", func() {
+						helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf("/v3/audit_events?page=%d", pages))
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
