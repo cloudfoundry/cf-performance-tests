@@ -33,7 +33,6 @@ type Config struct {
 	LargePageSize       int    `mapstructure:"large_page_size"`
 	LargeElementsFilter int    `mapstructure:"large_elements_filter"`
 	Samples             int
-	SampleLength        int           `mapstructure:"sample_length"`
 	BasicTimeout        time.Duration `mapstructure:"basic_timeout"`
 	LongTimeout         time.Duration `mapstructure:"long_timeout"`
 	Users               Users
