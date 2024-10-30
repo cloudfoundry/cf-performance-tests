@@ -35,8 +35,8 @@ capi_version: "<used for generated report>"
 large_page_size: 500  (the default value)
 large_elements_filter: 100  (the default value)
 samples: 5  (the default value)
-basictimeout: 60  (the default value)
-longtimeout: 180  (the default value)
+basic_timeout: 60  (the default value)
+long_timeout: 180  (the default value)
 users:
   admin:
     username: "<admin username>"
@@ -44,9 +44,10 @@ users:
   existing:  (optional block)
     username: "<non-admin username>"
     password: "<non-admin password>"
-database: "postgres" (default) or "mysql"
+database_type: "postgres" (default) or "mysql"
 ccdb_connection: "<connection string for CCDB>"
 uaadb_connection: "<connection string for UAADB>"  (optional, used to cleanup the created test user)
+results_folder: "../../test-results" (the default value)
 test_resource_prefix: "perf" (the default value)
 ```
 The `test_resource_prefix` string must match the prefix of the test resources names. Note that some performance tests delete lists of resources. Using a `test_resource_prefix` ensures that only test resources are deleted.
