@@ -47,8 +47,9 @@ users:
 database: "postgres" (default) or "mysql"
 ccdb_connection: "<connection string for CCDB>"
 uaadb_connection: "<connection string for UAADB>"  (optional, used to cleanup the created test user)
+test_resource_prefix: "perf" (the default value)
 ```
-The `name_prefix` string must match the prefix of the test resources names. Note that some performance tests delete lists of resources. Using a `name_prefix` ensures that only test resources are deleted.
+The `test_resource_prefix` string must match the prefix of the test resources names. Note that some performance tests delete lists of resources. Using a `test_resource_prefix` ensures that only test resources are deleted.
 
 Then run:
 ```bash
