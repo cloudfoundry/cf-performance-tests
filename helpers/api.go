@@ -3,12 +3,12 @@ package helpers
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
-	"time"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
-	"log"
+	"strings"
+	"time"
 
 	"github.com/cloudfoundry/cf-test-helpers/v2/cf"
 	"github.com/cloudfoundry/cf-test-helpers/v2/workflowhelpers"
@@ -18,8 +18,9 @@ import (
 
 type APIResponse struct {
 	Pagination struct {
+		TotalPages   int `json:"total_pages"`
 		TotalResults int `json:"total_results"`
-	}
+	} `json:"pagination"`
 	Resources []struct {
 		GUID     string `json:"guid"`
 		Name     string `json:"name"`
@@ -28,63 +29,63 @@ type APIResponse struct {
 }
 
 type APICreateResponse struct {
-    GUID string `json:"guid"`
+	GUID string `json:"guid"`
 }
 
 type DestinationsCreateResponse struct {
-    Destinations []struct {
-        GUID    string `json:"guid"`
-    } `json:"destinations"`
+	Destinations []struct {
+		GUID string `json:"guid"`
+	} `json:"destinations"`
 }
 
 func ParseDestinationsCreateResponseBody(body []byte) *DestinationsCreateResponse {
-    var resp *DestinationsCreateResponse
-    err := json.Unmarshal(body, &resp)
+	var resp *DestinationsCreateResponse
+	err := json.Unmarshal(body, &resp)
 
-    if err != nil {
+	if err != nil {
 
-        return nil
-    }
-    return resp
+		return nil
+	}
+	return resp
 }
 
 func ParseCreateResponseBody(body []byte) *APICreateResponse {
-    var resp *APICreateResponse
-    err := json.Unmarshal(body, &resp)
+	var resp *APICreateResponse
+	err := json.Unmarshal(body, &resp)
 
-    if err != nil {
+	if err != nil {
 
-        return nil
-    }
-    return resp
+		return nil
+	}
+	return resp
 }
 
 func RemoveDebugOutput(body []byte) []byte {
-    var jsons [][]byte
-    start := -1
-    level := 0
+	var jsons [][]byte
+	start := -1
+	level := 0
 
-    for i, r := range body {
-        if r == '{' {
-            if start == -1 {
-                start = i
-            }
-            level++
-        } else if r == '}' {
-            level--
-            if level == 0 {
-                jsons = append(jsons, body[start:i+1])
-                start = -1
-            }
-        }
-    }
+	for i, r := range body {
+		if r == '{' {
+			if start == -1 {
+				start = i
+			}
+			level++
+		} else if r == '}' {
+			level--
+			if level == 0 {
+				jsons = append(jsons, body[start:i+1])
+				start = -1
+			}
+		}
+	}
 
-    // For POST there will be 2 jsons in the output. Return the second one, which is the response.
-    if len(jsons) > 1 {
-        return jsons[1]
-    } else { // For GET there is just one json
-        return jsons[0]
-    }
+	// For POST there will be 2 jsons in the output. Return the second one, which is the response.
+	if len(jsons) > 1 {
+		return jsons[1]
+	} else { // For GET there is just one json
+		return jsons[0]
+	}
 }
 
 func ParseResponseBody(body []byte) *APIResponse {
@@ -154,34 +155,34 @@ func TimeCFCurlReturning(timeout time.Duration, curlArguments ...string) (int, [
 }
 
 func CreateAppFolder(appName string) string {
-    // Create a temporary directory
-    tempDir, err := ioutil.TempDir("", "app")
-    if err != nil {
-        panic(err)
-    }
+	// Create a temporary directory
+	tempDir, err := ioutil.TempDir("", "app")
+	if err != nil {
+		panic(err)
+	}
 
-    log.Printf("Created a temporary directory: %s", tempDir)
+	log.Printf("Created a temporary directory: %s", tempDir)
 
-    // Create a new file in the temporary directory
-    indexFile, err := os.Create(fmt.Sprintf("%s/%s",tempDir, "index.html"))
-    if err != nil {
-        panic(err)
-    }
+	// Create a new file in the temporary directory
+	indexFile, err := os.Create(fmt.Sprintf("%s/%s", tempDir, "index.html"))
+	if err != nil {
+		panic(err)
+	}
 
-    log.Printf("Created a temporary file: %s", indexFile.Name())
+	log.Printf("Created a temporary file: %s", indexFile.Name())
 
-    msg := []byte("Hello, World!")
-    if _, err := indexFile.Write(msg); err != nil {
-        panic(err)
-    }
+	msg := []byte("Hello, World!")
+	if _, err := indexFile.Write(msg); err != nil {
+		panic(err)
+	}
 
-    // You need to close the file after writing
-    if err := indexFile.Close(); err != nil {
-        panic(err)
-    }
+	// You need to close the file after writing
+	if err := indexFile.Close(); err != nil {
+		panic(err)
+	}
 
-    // Get the directory of the temporary file
-    dir := filepath.Dir(indexFile.Name())
+	// Get the directory of the temporary file
+	dir := filepath.Dir(indexFile.Name())
 
-    return dir
+	return dir
 }
