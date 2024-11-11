@@ -311,6 +311,19 @@ func ExecuteSelectStatementOneRow(db *sql.DB, ctx context.Context, statement str
 	return result
 }
 
+func ExecuteSelectStatementOneRowString(db *sql.DB, ctx context.Context, statement string) string {
+	var result string
+	err := db.QueryRowContext(ctx, statement).Scan(&result)
+	switch {
+	case err == sql.ErrNoRows:
+		log.Fatalf("query %s returned no value", statement)
+	case err != nil:
+		log.Fatalf("query %s failed with %v", statement, err)
+	}
+
+	return result
+}
+
 func ConvertToString(input interface{}) string {
 	if result, ok := input.(string); ok {
 		return result

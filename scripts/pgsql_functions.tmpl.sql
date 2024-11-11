@@ -308,17 +308,18 @@ DECLARE
 BEGIN
     FOR _ IN 1..num_services LOOP
         service_guid := gen_random_uuid();
-        INSERT INTO services (guid, label, description, bindable, service_broker_id)
+        INSERT INTO services (guid, label, description, bindable, service_broker_id, extra)
             VALUES (
                 service_guid,
                 service_label_prefix || service_guid,
                 service_description_prefix || service_guid,
                 service_bindable,
-                service_broker_id
+                service_broker_id,
+                '{"shareable": true}'
                 ) RETURNING id INTO latest_service_id;
         FOR _ IN 1..num_service_plans LOOP
             service_plan_guid := gen_random_uuid();
-            INSERT INTO service_plans (guid, name, description, free, service_id, unique_id, public)
+            INSERT INTO service_plans (guid, name, description, free, service_id, unique_id, public, extra)
                 VALUES (
                        service_plan_guid,
                        service_plan_name_prefix || service_plan_guid,
@@ -326,7 +327,8 @@ BEGIN
                        service_plan_free,
                        latest_service_id,
                        'unique-' || service_plan_guid,
-                       service_plan_public
+                       service_plan_public,
+                       '{"shareable": true}'
                    ) RETURNING id INTO latest_service_plan_id;
             INSERT INTO service_plan_visibilities (guid, service_plan_id, organization_id)
                 SELECT gen_random_uuid(), latest_service_plan_id, id
@@ -557,6 +559,133 @@ BEGIN
 
         route_mapping_guid := gen_random_uuid();
         INSERT INTO route_mappings (guid, app_guid, route_guid, process_type) VALUES (route_mapping_guid, app_guid, route_guid, process_type);
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_service_instances_for_orgs_spaces_plans(
+    orgs INTEGER,
+    spacesPerOrg INTEGER,
+    servicePlans INTEGER,
+    instancesPerPlanPerSpace INTEGER,
+    namePrefix VARCHAR
+) RETURNS void AS $$
+DECLARE
+    i INT := 0;
+    j INT := 0;
+    k INT := 0;
+    spaceOffset INT;
+    servicePlanOffset INT;
+    spaceId INT;
+    servicePlanId INT;
+BEGIN
+    -- Loop through organizations
+    WHILE i < orgs LOOP
+        j := 0;
+        
+        -- Loop through spaces per organization
+        WHILE j < spacesPerOrg LOOP
+            -- Calculate spaceOffset
+            spaceOffset := i * spacesPerOrg + j;
+
+            -- Get spaceId
+            SELECT id INTO spaceId
+            FROM spaces
+            WHERE name LIKE CONCAT(namePrefix, '-space-%')
+            LIMIT 1 OFFSET spaceOffset;
+
+            k := 0;
+            -- Loop through service plans
+            WHILE k < servicePlans LOOP
+                -- Calculate servicePlanOffset
+                servicePlanOffset := k;
+
+                -- Get servicePlanId
+                SELECT id INTO servicePlanId
+                FROM service_plans
+                WHERE name LIKE CONCAT(namePrefix, '-service-plan-%')
+                LIMIT 1 OFFSET servicePlanOffset;
+
+                -- Call the stored procedure to create service instances
+                PERFORM create_service_instances(spaceId, servicePlanId, instancesPerPlanPerSpace);
+
+                k := k + 1;
+            END LOOP;
+
+            j := j + 1;
+        END LOOP;
+
+        i := i + 1;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_service_instance_shares(
+    orgs INT, 
+    spacesPerOrg INT, 
+    serviceInstanceSharesPerSpace INT, 
+    namePrefix VARCHAR
+) RETURNS void AS $$
+DECLARE
+    i INT DEFAULT 0;
+    j INT DEFAULT 0;
+    k INT DEFAULT 0;
+    spaceOffset INT;
+    spaceId INT;
+    shareSpaceGuid VARCHAR(255);
+    serviceInstanceGuid VARCHAR(255);
+BEGIN
+    -- Loop through organizations
+    WHILE i < orgs LOOP
+        j := 0;
+        
+        -- Loop through spaces per organization
+        WHILE j < spacesPerOrg LOOP
+            -- Calculate spaceOffset and get spaceId
+            spaceOffset := i * spacesPerOrg + j;
+
+            -- Get spaceId
+            SELECT id INTO spaceId
+            FROM spaces
+            WHERE name LIKE CONCAT(namePrefix, '-space-%')
+            LIMIT 1 OFFSET spaceOffset;
+
+            k := 0;
+            -- Loop through the service instance shares
+            WHILE k < serviceInstanceSharesPerSpace LOOP
+                -- Find a random space to share that isn't our space
+                SELECT guid INTO shareSpaceGuid
+                FROM spaces
+                WHERE name LIKE CONCAT(namePrefix, '-space-%')
+                AND id != spaceId
+                ORDER BY RANDOM()
+                LIMIT 1;
+
+                -- Find service instance for the current space
+                SELECT service_instances.guid INTO serviceInstanceGuid
+                FROM service_instances
+                JOIN spaces ON service_instances.space_id = spaces.id
+                WHERE spaces.id = spaceId
+                AND service_instances.name LIKE CONCAT(namePrefix, '-service-instance-%')
+                LIMIT 1 OFFSET k;
+
+                -- Create the share for the service instance
+                INSERT INTO service_instance_shares (service_instance_guid, target_space_guid)
+                VALUES (serviceInstanceGuid, shareSpaceGuid);
+
+                k := k + 1;
+            END LOOP;
+
+            j := j + 1;
+        END LOOP;
+
+        i := i + 1;
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
