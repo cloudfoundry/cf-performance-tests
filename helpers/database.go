@@ -227,7 +227,7 @@ func AnalyzeDB(ccdb *sql.DB, ctx context.Context, testConfig Config) {
 		ExecuteStatement(ccdb, ctx, "VACUUM FULL;")
 		ExecuteStatement(ccdb, ctx, "ANALYZE;")
 	}
-	log.Printf("%v Waiting for Database to stabalize\n", time.Now().Format(time.RFC850))
+	log.Printf("%v Waiting for Database to stabilize\n", time.Now().Format(time.RFC850))
 	time.Sleep(120 * time.Second)
 }
 

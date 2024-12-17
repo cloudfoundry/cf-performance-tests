@@ -56,8 +56,8 @@ var _ = BeforeSuite(func() {
 	helpers.ExecuteStoredProcedure(ccdb, ctx, selectOrgsRandomlyStatement, testConfig)
 
 	log.Printf("Creating service offerings and plans...")
-	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
-		serviceOfferings, serviceBrokerId, servicePlansPerOffering, true, 0)
+	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, %v)",
+		serviceOfferings, serviceBrokerId, servicePlansPerOffering, true, 0, false)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPublicServicePlansStatement, testConfig)
 
 	// create spaces

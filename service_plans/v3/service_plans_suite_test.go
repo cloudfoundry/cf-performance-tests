@@ -26,7 +26,7 @@ var ctx context.Context
 var orgsWithAccessIDs []string
 var orgsFilter string
 
-const test_version = "v2"
+const test_version = "v3"
 
 const (
 	orgs                           = 10000
@@ -60,18 +60,18 @@ var _ = BeforeSuite(func() {
 	helpers.ExecuteStoredProcedure(ccdb, ctx, selectOrgsRandomlyStatement, testConfig)
 
 	log.Printf("Creating public service plans...")
-	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
-		serviceOfferings, serviceBrokerId, servicePlansPublic, true, 0)
+	createPublicServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, %v)",
+		serviceOfferings, serviceBrokerId, servicePlansPublic, true, 0, true)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPublicServicePlansStatement, testConfig)
 
 	log.Printf("Creating private service plans without visibilities...")
-	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
-		serviceOfferings, serviceBrokerId, servicePlansPrivateWithoutOrgs, false, 0)
+	createPrivateServicePlansStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, %v)",
+		serviceOfferings, serviceBrokerId, servicePlansPrivateWithoutOrgs, false, 0, true)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansStatement, testConfig)
 
 	log.Printf("Creating private plans with visibilities...")
-	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v)",
-		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan)
+	createPrivateServicePlansWithOrgsStatement := fmt.Sprintf("create_services_and_plans(%v, %v, %v, %v, %v, %v)",
+		serviceOfferings, serviceBrokerId, servicePlansPrivateWithOrgs, false, orgsPerLimitedServicePlan, true)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createPrivateServicePlansWithOrgsStatement, testConfig)
 
 	// create service instances incl dependent resources
@@ -79,12 +79,13 @@ var _ = BeforeSuite(func() {
 	createSpacesStatement := fmt.Sprintf("create_spaces(%d)", spacesPerOrg)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createSpacesStatement, testConfig)
 
-	//choose one single space and one single service plan randomly
-	selectRandomSpaceStatement := fmt.Sprintf("SELECT spaces.id FROM spaces JOIN selected_orgs ON spaces.organization_id = selected_orgs.id ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
-	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
-
+	// choose one single service plan randomly
 	selectRandomServicePlanStatement := fmt.Sprintf("SELECT s_p_v.service_plan_id FROM service_plan_visibilities AS s_p_v JOIN selected_orgs AS s_o ON s_p_v.organization_id = s_o.id ORDER BY %s LIMIT 1", helpers.GetRandomFunction(testConfig))
 	servicePlanId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomServicePlanStatement)
+
+	// choose single space (where this service plan is visible)
+	selectRandomSpaceStatement := fmt.Sprintf("SELECT spaces.id FROM spaces JOIN service_plan_visibilities AS s_p_v ON spaces.organization_id = s_p_v.organization_id WHERE s_p_v.service_plan_id = %d ORDER BY %s LIMIT 1", servicePlanId, helpers.GetRandomFunction(testConfig))
+	spaceId := helpers.ExecuteSelectStatementOneRow(ccdb, ctx, selectRandomSpaceStatement)
 
 	createServiceInstancesStatement := fmt.Sprintf("create_service_instances(%d, %d, %d)", spaceId, servicePlanId, serviceInstances)
 	helpers.ExecuteStoredProcedure(ccdb, ctx, createServiceInstancesStatement, testConfig)
