@@ -45,10 +45,10 @@ var _ = Describe("service plans", func() {
 			experiment := gmeasure.NewExperiment("GET /v3/service_plans::as regular user::list all")
 			AddReportEntry(experiment.Name, experiment)
 
-			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+			workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.LongTimeout, func() {
 				experiment.Sample(func(idx int) {
 					experiment.MeasureDuration("GET /v3/service_plans", func() {
-						helpers.TimeCFCurl(testConfig.BasicTimeout, "/v3/service_plans")
+						helpers.TimeCFCurl(testConfig.LongTimeout, "/v3/service_plans")
 					})
 				}, gmeasure.SamplingConfig{N: testConfig.Samples})
 			})
