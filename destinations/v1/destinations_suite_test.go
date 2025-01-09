@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"testing"
 	"os"
+	"testing"
 
 	"github.com/google/uuid"
 
@@ -68,7 +68,7 @@ func setupAppAndSeedDB(appName string, spaceGuid string) string {
 	defer os.RemoveAll(appDir)
 
 	log.Printf("Pushing app `%s`", appName)
-	pushResult := cf.Push(appName, "-i", "1", "-b", "staticfile_buildpack", "-p", appDir).Wait(120)
+	pushResult := cf.Cf("push", appName, "-i", "1", "-b", "staticfile_buildpack", "-p", appDir, "--no-start").Wait(120)
 	if pushResult.ExitCode() != 0 {
 		panic("Push not successful")
 	}
