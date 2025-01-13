@@ -28,7 +28,7 @@ var _ = Describe("service plans", func() {
 			})
 		})
 
-		It("lists all /v3/service_plans as admin with large page size", func() {
+		It("list all /v3/service_plans as admin with large page size", func() {
 			experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans::as admin::list with page size %d", testConfig.LargePageSize))
 			AddReportEntry(experiment.Name, experiment)
 
@@ -74,7 +74,7 @@ var _ = Describe("service plans", func() {
 		})
 
 		Context("as regular user", func() {
-			It("shows one /v3/service_plans/:guid as regular user", func() {
+			It("shows one /v3/service_plans/:guid as user", func() {
 				experiment := gmeasure.NewExperiment("GET /v3/service_plans/:guid::as regular user::show one")
 				AddReportEntry(experiment.Name, experiment)
 
@@ -199,6 +199,23 @@ var _ = Describe("service plans", func() {
 					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
 			})
+
+			It(fmt.Sprintf("filters for list of service_instances with page size %d", testConfig.LargePageSize), func() {
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_instance_guids=::as admin::filter for list of service_instances with page size %d", testConfig.LargePageSize))
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.AdminUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						serviceInstanceGuidsList := getRandomServiceInstanceGUIDs()
+
+						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_instance_guids=%v&per_page=%d",
+								strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
 		})
 
 		Context("as regular user", func() {
@@ -213,6 +230,23 @@ var _ = Describe("service plans", func() {
 						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
 							helpers.TimeCFCurl(testConfig.BasicTimeout, fmt.Sprintf(
 								"/v3/service_plans?service_instance_guids=%v", strings.Join(serviceInstanceGuidsList[:], ",")))
+						})
+					}, gmeasure.SamplingConfig{N: testConfig.Samples})
+				})
+			})
+
+			It(fmt.Sprintf("filters for list of service_instances with page size %d", testConfig.LargePageSize), func() {
+				experiment := gmeasure.NewExperiment(fmt.Sprintf("GET /v3/service_plans?service_instance_guids=::as regular user::filter for list of service_instances with page size %d", testConfig.LargePageSize))
+				AddReportEntry(experiment.Name, experiment)
+
+				workflowhelpers.AsUser(testSetup.RegularUserContext(), testConfig.BasicTimeout, func() {
+					experiment.Sample(func(idx int) {
+						serviceInstanceGuidsList := getRandomServiceInstanceGUIDs()
+
+						experiment.MeasureDuration("GET /v3/service_plans?service_instances_guids=:guid", func() {
+							helpers.TimeCFCurl(testConfig.LongTimeout, fmt.Sprintf(
+								"/v3/service_plans?service_instance_guids=%v&per_page=%d",
+								strings.Join(serviceInstanceGuidsList[:], ","), testConfig.LargePageSize))
 						})
 					}, gmeasure.SamplingConfig{N: testConfig.Samples})
 				})
@@ -267,13 +301,13 @@ func getRandomServiceInstanceGUIDs() []string {
 	var serviceInstanceGuidsList []string = nil
 
 	// all service instances are being created in a space the user has access to
-	serviceInstanceStatement := fmt.Sprintf("SELECT guid FROM service_instances WHERE name LIKE '%s-service-instance-%%' ORDER BY %s LIMIT 200", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
+	serviceInstanceStatement := fmt.Sprintf("SELECT guid FROM service_instances WHERE name LIKE '%s-service-instance-%%' ORDER BY %s LIMIT 50", testConfig.GetNamePrefix(), helpers.GetRandomFunction(testConfig))
 	serviceInstanceGuids := helpers.ExecuteSelectStatement(ccdb, ctx, serviceInstanceStatement)
 	for _, guid := range serviceInstanceGuids {
 		serviceInstanceGuidsList = append(serviceInstanceGuidsList, helpers.ConvertToString(guid))
 	}
 
-	Expect(len(serviceInstanceGuidsList)).To(Equal(200))
+	Expect(len(serviceInstanceGuidsList)).To(Equal(50))
 
 	return serviceInstanceGuidsList
 }
