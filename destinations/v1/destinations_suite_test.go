@@ -35,7 +35,7 @@ const test_version = "v1"
 // diego seems to have a limitation here
 // when binding more routes to an app the app does not start, or it will fail during staging already
 const (
-	routeMappings = 800
+	routeMappings = 700
 )
 
 func setupAppAndSeedDB(appName string, spaceGuid string) string {
