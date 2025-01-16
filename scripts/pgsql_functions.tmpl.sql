@@ -290,7 +290,8 @@ CREATE OR REPLACE FUNCTION create_services_and_plans(
     service_broker_id INTEGER,
     num_service_plans INTEGER,
     service_plan_public BOOLEAN,
-    visible_orgs_per_plan INTEGER
+    visible_orgs_per_plan INTEGER,
+    with_boilerplate BOOLEAN
 ) RETURNS void AS
 $$
 DECLARE
@@ -301,11 +302,24 @@ DECLARE
     service_plan_guid TEXT;
     service_plan_name_prefix TEXT := '{{.Prefix}}-service-plan-';
     service_plan_description_prefix TEXT := '{{.Prefix}}-service-plan-description-';
+    boilerplate TEXT;
     service_plan_free BOOLEAN := true;
     latest_service_id INTEGER;
     latest_service_plan_id INTEGER;
 
 BEGIN
+    IF with_boilerplate = true THEN
+        boilerplate := 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.' ||
+                       'Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat.' ||
+                       'Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi.' ||
+                       'Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat.' ||
+                       'Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis.' ||
+                       'At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.' ||
+                       'Consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus.';
+    ELSE
+        boilerplate := '';
+    END IF;
+
     FOR _ IN 1..num_services LOOP
         service_guid := gen_random_uuid();
         INSERT INTO services (guid, label, description, bindable, service_broker_id, extra)
@@ -319,16 +333,19 @@ BEGIN
                 ) RETURNING id INTO latest_service_id;
         FOR _ IN 1..num_service_plans LOOP
             service_plan_guid := gen_random_uuid();
-            INSERT INTO service_plans (guid, name, description, free, service_id, unique_id, public, extra)
+            INSERT INTO service_plans (guid, name, description, free, service_id, unique_id, public, extra, create_instance_schema, update_instance_schema, create_binding_schema)
                 VALUES (
                        service_plan_guid,
                        service_plan_name_prefix || service_plan_guid,
-                       service_plan_description_prefix || service_plan_guid,
+                       service_plan_description_prefix || service_plan_guid || boilerplate,
                        service_plan_free,
                        latest_service_id,
                        'unique-' || service_plan_guid,
                        service_plan_public,
-                       '{"shareable": true}'
+                       '{"shareable": true}',
+                       boilerplate,
+                       boilerplate,
+                       boilerplate
                    ) RETURNING id INTO latest_service_plan_id;
             INSERT INTO service_plan_visibilities (guid, service_plan_id, organization_id)
                 SELECT gen_random_uuid(), latest_service_plan_id, id
