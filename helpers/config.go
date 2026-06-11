@@ -48,8 +48,6 @@ func NewConfig() Config {
 		LargePageSize:       500,
 		LargeElementsFilter: 100,
 		Samples:             5,
-		BasicTimeout:        60 * time.Second,
-		LongTimeout:         180 * time.Second,
 	}
 }
 
@@ -68,6 +66,8 @@ func (config Config) GetShouldKeepUser() bool             { return true }
 func (config Config) GetConfigurableTestPassword() string { return "" }
 func (config Config) GetAdminClient() string              { return config.Users.Admin.Client }
 func (config Config) GetAdminClientSecret() string        { return config.Users.Admin.ClientSecret }
+func (config Config) GetAdminOrigin() string              { return "" }
+func (config Config) GetUserOrigin() string               { return "" }
 func (config Config) GetExistingClient() string           { return config.Users.Existing.Client }
 func (config Config) GetExistingClientSecret() string     { return config.Users.Existing.ClientSecret }
 func (config Config) GetApiEndpoint() string {
@@ -103,6 +103,8 @@ func LoadConfig(testConfig *Config) {
 	viper.SetDefault("results_folder", "../../test-results")
 	viper.SetDefault("test_resource_prefix", "perf")
 	viper.SetDefault("database_type", PsqlDb)
+	viper.SetDefault("basic_timeout", 60)
+	viper.SetDefault("long_timeout", 180)
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("error loading config: %s", err.Error())
@@ -111,6 +113,9 @@ func LoadConfig(testConfig *Config) {
 	if err != nil {
 		log.Fatalf("error parsing config: %s", err.Error())
 	}
+
+	testConfig.BasicTimeout *= time.Second
+	testConfig.LongTimeout *= time.Second
 
 	if testConfig.DatabaseType != PsqlDb && testConfig.DatabaseType != MysqlDb {
 		log.Fatalf("'database_type' parameter must be one of '%s' or '%s'", PsqlDb, MysqlDb)
