@@ -4,7 +4,7 @@ go 1.25.0
 
 require (
 	github.com/cloudfoundry/cf-test-helpers/v2 v2.13.0
-	github.com/go-sql-driver/mysql v1.4.0
+	github.com/go-sql-driver/mysql v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v4 v4.18.3
 	github.com/onsi/ginkgo/v2 v2.31.0
@@ -13,6 +13,7 @@ require (
 )
 
 require (
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Masterminds/semver/v3 v3.4.0 // indirect
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/go-logr/logr v1.4.3 // indirect
@@ -42,6 +43,5 @@ require (
 	golang.org/x/sys v0.43.0 // indirect
 	golang.org/x/text v0.36.0 // indirect
 	golang.org/x/tools v0.44.0 // indirect
-	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
