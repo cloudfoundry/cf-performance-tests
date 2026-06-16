@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jackc/pgx/v4 v4.12.0
 	github.com/onsi/ginkgo/v2 v2.31.0
-	github.com/onsi/gomega v1.40.0
+	github.com/onsi/gomega v1.42.0
 	github.com/spf13/viper v1.7.1
 )
 
