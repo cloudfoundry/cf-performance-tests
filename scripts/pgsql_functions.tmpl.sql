@@ -706,3 +706,40 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+-- Each of the 4 org-role tables receives an equal, non-overlapping slice, so the
+-- union of readable orgs equals exactly the full selected_orgs count on every run
+-- (deterministic), while still exercising all 4 role tables in the visibility union.
+CREATE OR REPLACE FUNCTION assign_user_disjoint_org_roles(
+    user_guid TEXT
+) RETURNS void AS
+$$
+DECLARE
+    v_user_id int;
+BEGIN
+    SELECT id FROM users WHERE guid = user_guid INTO v_user_id;
+
+    INSERT INTO organizations_managers (organization_id, user_id)
+    SELECT id, v_user_id FROM (
+        SELECT id, row_number() OVER (ORDER BY id) - 1 AS rn FROM selected_orgs
+    ) s WHERE s.rn % 4 = 0;
+
+    INSERT INTO organizations_billing_managers (organization_id, user_id)
+    SELECT id, v_user_id FROM (
+        SELECT id, row_number() OVER (ORDER BY id) - 1 AS rn FROM selected_orgs
+    ) s WHERE s.rn % 4 = 1;
+
+    INSERT INTO organizations_auditors (organization_id, user_id)
+    SELECT id, v_user_id FROM (
+        SELECT id, row_number() OVER (ORDER BY id) - 1 AS rn FROM selected_orgs
+    ) s WHERE s.rn % 4 = 2;
+
+    INSERT INTO organizations_users (organization_id, user_id)
+    SELECT id, v_user_id FROM (
+        SELECT id, row_number() OVER (ORDER BY id) - 1 AS rn FROM selected_orgs
+    ) s WHERE s.rn % 4 = 3;
+END;
+$$ LANGUAGE plpgsql;
