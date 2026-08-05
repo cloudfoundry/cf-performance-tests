@@ -710,6 +710,43 @@ $$ LANGUAGE plpgsql;
 -- ============================================================= --
 
 -- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_org_quotas_and_distribute_orgs(
+    num_quotas INTEGER
+) RETURNS void AS
+$$
+DECLARE
+    quota_name_prefix text := '{{.Prefix}}-org-quota-';
+    org_name_query text := '{{.Prefix}}-org-%';
+    quota_ids int[];
+BEGIN
+    -- create the quotas
+    FOR _ IN 1..num_quotas LOOP
+        INSERT INTO quota_definitions
+            (guid, name, non_basic_services_allowed, total_services, memory_limit, total_routes)
+        VALUES
+            (gen_random_uuid(), quota_name_prefix || gen_random_uuid(), true, -1, -1, -1);
+    END LOOP;
+
+    -- collect the ids of the quotas we just created
+    SELECT array_agg(id ORDER BY id) INTO quota_ids
+    FROM quota_definitions WHERE name LIKE quota_name_prefix || '%';
+
+    -- distribute prefixed orgs across the new quotas round-robin
+    UPDATE organizations o
+    SET quota_definition_id = quota_ids[1 + (sub.rn % num_quotas)]
+    FROM (
+        SELECT id, row_number() OVER (ORDER BY id) - 1 AS rn
+        FROM organizations
+        WHERE name LIKE org_name_query
+    ) sub
+    WHERE o.id = sub.id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+-- Assigns the user one org role per disjoint quarter of the selected_orgs table.
 -- Each of the 4 org-role tables receives an equal, non-overlapping slice, so the
 -- union of readable orgs equals exactly the full selected_orgs count on every run
 -- (deterministic), while still exercising all 4 role tables in the visibility union.
