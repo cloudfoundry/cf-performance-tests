@@ -780,3 +780,81 @@ BEGIN
     ) s WHERE s.rn % 4 = 3;
 END;
 $$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION add_metadata_to_private_domains(
+    num_labels_per_domain INTEGER,
+    num_annotations_per_domain INTEGER
+) RETURNS void AS
+$$
+DECLARE
+    domain_guid text;
+    domain_name_query text := '{{.Prefix}}-private-domain-%';
+BEGIN
+    FOR domain_guid IN (SELECT guid FROM domains WHERE name LIKE domain_name_query) LOOP
+        FOR i IN 1..num_labels_per_domain LOOP
+            INSERT INTO domain_labels (guid, resource_guid, key_name, value)
+            VALUES (gen_random_uuid(), domain_guid, '{{.Prefix}}-key-' || i, '{{.Prefix}}-value-' || i);
+        END LOOP;
+        FOR i IN 1..num_annotations_per_domain LOOP
+            INSERT INTO domain_annotations (guid, resource_guid, key_name, value)
+            VALUES (gen_random_uuid(), domain_guid, '{{.Prefix}}-key-' || i, '{{.Prefix}}-value-' || i);
+        END LOOP;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION share_private_domains_with_orgs(
+    num_orgs_per_domain INTEGER
+) RETURNS void AS
+$$
+DECLARE
+    v_private_domain_id int;
+    v_owning_org_id int;
+    domain_name_query text := '{{.Prefix}}-private-domain-%';
+BEGIN
+    FOR v_private_domain_id IN (SELECT id FROM domains WHERE name LIKE domain_name_query) LOOP
+        SELECT owning_organization_id INTO v_owning_org_id FROM domains WHERE id = v_private_domain_id;
+        INSERT INTO organizations_private_domains (organization_id, private_domain_id)
+        SELECT o.id, v_private_domain_id
+        FROM organizations o
+        WHERE o.name LIKE '{{.Prefix}}-org-%'
+          AND o.id <> v_owning_org_id
+        ORDER BY random()
+        LIMIT num_orgs_per_domain
+        ON CONFLICT (organization_id, private_domain_id) DO NOTHING;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================= --
+
+-- FUNC DEF:
+CREATE OR REPLACE FUNCTION create_unshared_private_domains(
+    num_private_domains INTEGER
+) RETURNS void AS
+$$
+DECLARE
+    org_id int;
+    org_name_query text := '{{.Prefix}}-org-%';
+    num_created int := 0;
+    domain_guid text;
+    domain_name_prefix text := '{{.Prefix}}-unshared-private-domain-';
+BEGIN
+    LOOP
+        FOR org_id IN (SELECT id FROM organizations WHERE name LIKE org_name_query ORDER BY random()) LOOP
+            IF num_created = num_private_domains THEN
+                RETURN;
+            END IF;
+            domain_guid := gen_random_uuid();
+            INSERT INTO domains (guid, name, owning_organization_id) VALUES (domain_guid, domain_name_prefix || domain_guid, org_id);
+            num_created := num_created + 1;
+        END LOOP;
+    END LOOP;
+END;
+$$ LANGUAGE plpgsql;
